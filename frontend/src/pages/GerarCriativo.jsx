@@ -19,7 +19,7 @@ export default function GerarCriativo() {
     objetivo: 'conversao',
     tom: 'urgencia',
     formato: 'feed_square',
-    modelo: 'nano-banana-2',
+    modelo: 'nano-banana-2',  // Modelo recomendado: Nano Banana 2
     estilo: 'moderno e profissional',
     headline: '',
     instrucoes_adicionais: '',

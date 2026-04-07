@@ -91,19 +91,26 @@ AD_FORMATS = {
 }
 
 IMAGE_MODELS = {
-    "nano-banana-2": {
-        "id": "gemini-2.0-flash-exp-image-generation",
-        "label": "Gemini Flash Image ⭐ Recomendado",
+    "nano-banana": {
+        "id": "gemini-2.5-flash-image",
+        "label": "Nano Banana (Econômico)",
         "type": "gemini_native",
         "supports_edit": True,
         "price_approx": "$0.039/img",
     },
-    "imagen-4": {
-        "id": "imagen-3.0-generate-002",
-        "label": "Imagen 3 (Google)",
-        "type": "imagen",
-        "supports_edit": False,
-        "price_approx": "$0.04/img",
+    "nano-banana-2": {
+        "id": "gemini-3.1-flash-image-preview",
+        "label": "Nano Banana 2 ⭐ Recomendado",
+        "type": "gemini_native",
+        "supports_edit": True,
+        "price_approx": "$0.067/img",
+    },
+    "nano-banana-pro": {
+        "id": "gemini-3-pro-image-preview",
+        "label": "Nano Banana Pro (Premium)",
+        "type": "gemini_native",
+        "supports_edit": True,
+        "price_approx": "$0.134/img",
     },
 }
 
