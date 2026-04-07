@@ -6,31 +6,54 @@ from fastapi import Request, HTTPException, Depends
 from config import DRA_AUTH_URL
 
 
+def verify_auth_sync(request: Request):
+    """
+    Verifica autenticação via dra-auth.
+    O dra-auth usa cookie 'dra_session'.
+    """
+    # Pegar o cookie dra_session
+    token = request.cookies.get("dra_session")
+    
+    if not token:
+        raise HTTPException(status_code=401, detail="Não autenticado")
+
+    # Validar chamando o dra-auth
+    import requests
+    try:
+        resp = requests.get(
+            f"{DRA_AUTH_URL}/auth/validate",
+            cookies={"dra_session": token},
+            timeout=5.0
+        )
+    except requests.RequestException:
+        raise HTTPException(status_code=503, detail="Serviço de autenticação indisponível")
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Sessão inválida")
+
+    return {"username": "user"}  # Simplificado
+
+
 async def verify_auth(request: Request):
     """
-    Middleware/Dependency que valida autenticação via dra-auth.
+    Versão async da verificação de autenticação.
     """
-    # Extrair token do cookie ou header Authorization
-    token = request.cookies.get("session_token")
+    token = request.cookies.get("dra_session")
     
-    auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        token = auth_header.split(" ")[1]
-
     if not token:
         raise HTTPException(status_code=401, detail="Não autenticado")
 
     async with httpx.AsyncClient() as client:
         try:
             resp = await client.get(
-                f"{DRA_AUTH_URL}/api/verify",
-                cookies={"session_token": token},
+                f"{DRA_AUTH_URL}/auth/validate",
+                cookies={"dra_session": token},
                 timeout=5.0
             )
         except httpx.ConnectError:
             raise HTTPException(status_code=503, detail="Serviço de autenticação indisponível")
 
     if resp.status_code != 200:
-        raise HTTPException(status_code=401, detail="Token inválido")
+        raise HTTPException(status_code=401, detail="Sessão inválida")
 
-    return resp.json()  # dados do usuário
+    return {"username": "user"}

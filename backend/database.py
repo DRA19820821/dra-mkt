@@ -8,7 +8,7 @@ from config import DB_PATH
 
 def get_db():
     """Retorna conexão com o banco."""
-    db = sqlite3.connect(str(DB_PATH))
+    db = sqlite3.connect(str(DB_PATH), check_same_thread=False)
     db.row_factory = sqlite3.Row
     db.execute("PRAGMA journal_mode=WAL")
     db.execute("PRAGMA foreign_keys=ON")
