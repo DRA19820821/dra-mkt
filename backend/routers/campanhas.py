@@ -51,13 +51,10 @@ async def listar_campanhas(
         SELECT c.*, 
                p.nome as produto_nome, 
                pe.nome as persona_nome,
-               cp.headline as copy_headline,
                cr.imagem_path as criativo_imagem
         FROM campanhas c
         LEFT JOIN produtos p ON c.produto_id = p.id
         LEFT JOIN personas pe ON c.persona_id = pe.id
-        LEFT JOIN copys cp ON c.copy_id = cp.id
-        LEFT JOIN copy_variants crv ON crv.copy_id = cp.id AND crv.variante_num = 1
         LEFT JOIN criativos cr ON c.criativo_id = cr.id
         WHERE 1=1
     """
