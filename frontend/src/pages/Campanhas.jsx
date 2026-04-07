@@ -41,12 +41,17 @@ export default function Campanhas() {
         criativosApi.listar({ status: 'aprovado' }),
       ])
       setCampanhas(campRes.data)
-      setProdutos(prodRes.data)
-      setPersonas(persRes.data)
-      setCopys(copyRes.data)
-      setCriativos(criaRes.data)
+      setProdutos(prodRes.data || [])
+      setPersonas(persRes.data || [])
+      setCopys(copyRes.data || [])
+      setCriativos(criaRes.data || [])
+      
+      // Debug
+      console.log('Produtos carregados:', prodRes.data?.length || 0)
+      console.log('Personas carregadas:', persRes.data?.length || 0)
     } catch (error) {
-      toast.error('Erro ao carregar dados')
+      console.error('Erro ao carregar dados:', error)
+      toast.error('Erro ao carregar dados: ' + (error.response?.data?.detail || error.message))
     } finally {
       setLoading(false)
     }
@@ -102,7 +107,11 @@ export default function Campanhas() {
           </p>
         </div>
         <button
-          onClick={() => setModalAberto(true)}
+          onClick={() => {
+            // Recarregar dados ao abrir modal para garantir que temos os produtos/personas mais recentes
+            carregarDados()
+            setModalAberto(true)
+          }}
           className="btn btn-primary"
         >
           <Plus className="w-5 h-5" />
@@ -203,12 +212,20 @@ export default function Campanhas() {
                         value={formData.produto_id}
                         onChange={(e) => setFormData({ ...formData, produto_id: e.target.value })}
                         className="form-input"
+                        disabled={produtos.length === 0}
                       >
-                        <option value="">Selecione</option>
+                        <option value="">
+                          {produtos.length === 0 ? 'Nenhum produto cadastrado' : 'Selecione'}
+                        </option>
                         {produtos.map(p => (
                           <option key={p.id} value={p.id}>{p.nome}</option>
                         ))}
                       </select>
+                      {produtos.length === 0 && (
+                        <p className="text-xs text-red-500 mt-1">
+                          Cadastre um produto primeiro em "Produtos"
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="form-label">Persona *</label>
@@ -217,12 +234,20 @@ export default function Campanhas() {
                         value={formData.persona_id}
                         onChange={(e) => setFormData({ ...formData, persona_id: e.target.value })}
                         className="form-input"
+                        disabled={personas.length === 0}
                       >
-                        <option value="">Selecione</option>
+                        <option value="">
+                          {personas.length === 0 ? 'Nenhuma persona cadastrada' : 'Selecione'}
+                        </option>
                         {personas.map(p => (
                           <option key={p.id} value={p.id}>{p.nome}</option>
                         ))}
                       </select>
+                      {personas.length === 0 && (
+                        <p className="text-xs text-red-500 mt-1">
+                          Cadastre uma persona primeiro em "Personas"
+                        </p>
+                      )}
                     </div>
                   </div>
 
