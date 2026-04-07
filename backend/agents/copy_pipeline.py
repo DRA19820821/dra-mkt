@@ -146,14 +146,33 @@ async def gerar_copys(state: CopyState) -> dict:
     
     # Parse JSON da resposta
     try:
-        content = response.content.strip()
-        # Limpar possíveis marcadores de código
+        # Extrair conteúdo (tratar diferentes formatos de resposta)
+        content = response.content
+        
+        # Se for uma lista (caso do Gemini), converter para string
+        if isinstance(content, list):
+            content = " ".join(str(item) for item in content)
+        
+        content = content.strip()
+        
+        # Limpar possíveis marcadores de código markdown
         if content.startswith("```"):
-            content = content.split("\n", 1)[1].rsplit("```", 1)[0]
+            # Remover ```json ou ``` no início
+            content = content.split("\n", 1)[1] if "\n" in content else content[3:]
+        if content.endswith("```"):
+            content = content[:-3]
+        content = content.strip()
+        
         variantes = json.loads(content)
-    except (json.JSONDecodeError, IndexError) as e:
-        # Fallback: retornar variante de erro
-        variantes = [{"headline": "Erro na geração", "body_text": str(response.content)[:100], "cta": "Tentar novamente"}]
+        
+        # Validar formato
+        if not isinstance(variantes, list):
+            raise ValueError("Resposta não é uma lista")
+            
+    except (json.JSONDecodeError, IndexError, ValueError, AttributeError) as e:
+        # Fallback: retornar variante de erro com o conteúdo recebido
+        error_content = str(response.content)[:200] if hasattr(response, 'content') else str(response)[:200]
+        variantes = [{"headline": "Erro na geração", "body_text": f"Erro: {str(e)[:50]} | Conteúdo: {error_content}", "cta": "Tentar novamente"}]
 
     return {
         "variantes": variantes,
@@ -180,14 +199,32 @@ async def revisar_copys(state: CopyState) -> dict:
     response = await llm.ainvoke([HumanMessage(content=prompt)])
 
     try:
-        content = response.content.strip()
+        # Extrair conteúdo (tratar diferentes formatos de resposta)
+        content = response.content
+        
+        # Se for uma lista (caso do Gemini), converter para string
+        if isinstance(content, list):
+            content = " ".join(str(item) for item in content)
+        
+        content = content.strip()
+        
+        # Limpar possíveis marcadores de código markdown
         if content.startswith("```"):
-            content = content.split("\n", 1)[1].rsplit("```", 1)[0]
+            content = content.split("\n", 1)[1] if "\n" in content else content[3:]
+        if content.endswith("```"):
+            content = content[:-3]
+        content = content.strip()
+        
         revisao = json.loads(content)
-    except (json.JSONDecodeError, IndexError) as e:
+        
+        # Validar formato
+        if not isinstance(revisao, list):
+            raise ValueError("Resposta não é uma lista")
+            
+    except (json.JSONDecodeError, IndexError, ValueError, AttributeError) as e:
         # Se falhar o parse, aprovar com score default
         revisao = [
-            {"variante_num": i + 1, "score_geral": 7.0, "scores": {}, "feedback": "Revisão automática falhou"}
+            {"variante_num": i + 1, "score_geral": 7.0, "scores": {}, "feedback": "Revisão automática - formato de resposta inválido"}
             for i in range(len(state["variantes"]))
         ]
 
