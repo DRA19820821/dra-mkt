@@ -6,6 +6,10 @@ import GerarCopy from './pages/GerarCopy'
 import Biblioteca from './pages/Biblioteca'
 import Produtos from './pages/Produtos'
 import Personas from './pages/Personas'
+import GerarCriativo from './pages/GerarCriativo'
+import Galeria from './pages/Galeria'
+import Campanhas from './pages/Campanhas'
+import Templates from './pages/Templates'
 
 export default function App() {
   return (
@@ -30,9 +34,13 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="gerar" element={<GerarCopy />} />
+          <Route path="criativos" element={<GerarCriativo />} />
+          <Route path="galeria" element={<Galeria />} />
+          <Route path="campanhas" element={<Campanhas />} />
           <Route path="biblioteca" element={<Biblioteca />} />
           <Route path="produtos" element={<Produtos />} />
           <Route path="personas" element={<Personas />} />
+          <Route path="templates" element={<Templates />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

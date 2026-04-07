@@ -15,6 +15,9 @@ from auth import verify_auth
 from routers.produtos import router as produtos_router
 from routers.personas import router as personas_router
 from routers.copys import router as copys_router
+from routers.criativos import router as criativos_router
+from routers.campanhas import router as campanhas_router
+from routers.templates import router as templates_router
 
 
 @asynccontextmanager
@@ -61,6 +64,9 @@ async def get_current_user(user=Depends(verify_auth)):
 app.include_router(produtos_router, prefix="/api/produtos", tags=["produtos"])
 app.include_router(personas_router, prefix="/api/personas", tags=["personas"])
 app.include_router(copys_router, prefix="/api/copys", tags=["copys"])
+app.include_router(criativos_router, prefix="/api/criativos", tags=["criativos"])
+app.include_router(campanhas_router, prefix="/api/campanhas", tags=["campanhas"])
+app.include_router(templates_router, prefix="/api/templates", tags=["templates"])
 
 
 # ===== SPA Fallback (deve vir DEPOIS de todas as API routes) =====

@@ -80,5 +80,42 @@ def init_db():
             feedback_revisor TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS criativos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            produto_id INTEGER REFERENCES produtos(id),
+            persona_id INTEGER REFERENCES personas(id),
+            campanha_id INTEGER REFERENCES campanhas(id),
+            tipo TEXT NOT NULL,
+            formato TEXT NOT NULL,
+            prompt_usado TEXT,
+            modelo_ia TEXT NOT NULL,
+            provider TEXT DEFAULT 'google',
+            imagem_path TEXT,
+            thumbnail_path TEXT,
+            tamanho_bytes INTEGER,
+            status TEXT DEFAULT 'rascunho',
+            favorito BOOLEAN DEFAULT 0,
+            metadata TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS campanhas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            produto_id INTEGER REFERENCES produtos(id),
+            persona_id INTEGER REFERENCES personas(id),
+            objetivo TEXT NOT NULL,
+            tom TEXT NOT NULL,
+            status TEXT DEFAULT 'rascunho',
+            copy_id INTEGER REFERENCES copys(id),
+            criativo_id INTEGER REFERENCES criativos(id),
+            plataforma TEXT DEFAULT 'facebook_instagram',
+            orcamento_diario REAL,
+            publico_alvo TEXT,
+            notas TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
     """)
     db.close()

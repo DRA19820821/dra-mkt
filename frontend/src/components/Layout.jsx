@@ -8,16 +8,24 @@ import {
   BrainCircuit,
   Menu,
   X,
-  ChevronRight
+  ChevronRight,
+  Image as ImageIcon,
+  Megaphone,
+  Images,
+  FileCode
 } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/gerar', icon: PenTool, label: 'Gerar Copy' },
+  { path: '/criativos', icon: ImageIcon, label: 'Gerar Criativo' },
+  { path: '/campanhas', icon: Megaphone, label: 'Campanhas' },
   { path: '/biblioteca', icon: Library, label: 'Biblioteca' },
+  { path: '/galeria', icon: Images, label: 'Galeria' },
   { path: '/produtos', icon: Package, label: 'Produtos' },
   { path: '/personas', icon: Users, label: 'Personas' },
+  { path: '/templates', icon: FileCode, label: 'Templates' },
 ]
 
 export default function Layout() {
@@ -90,7 +98,7 @@ export default function Layout() {
         <div className="p-4 border-t border-white/10">
           <div className="bg-white/5 rounded-lg p-4">
             <p className="text-xs text-blue-300/70 mb-1">Versão</p>
-            <p className="text-sm font-medium">v0.2.0 — Fase 2</p>
+            <p className="text-sm font-medium">v0.3.0 — Fase 3</p>
           </div>
         </div>
       </aside>

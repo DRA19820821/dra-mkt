@@ -93,3 +93,37 @@ export const copysApi = {
   deletar: (id) => api.delete(`/copys/${id}`),
   listarProviders: () => api.get('/copys/providers'),
 };
+
+// API de Criativos (Imagens)
+export const criativosApi = {
+  listarModelos: () => api.get('/criativos/models'),
+  listarFormatos: () => api.get('/criativos/formats'),
+  gerar: (data, callbacks) => createSSERequest('/criativos/gerar', data, callbacks),
+  listar: (params) => api.get('/criativos/', { params }),
+  detalhe: (id) => api.get(`/criativos/${id}`),
+  imagemUrl: (id) => `/dra-mkt/api/criativos/${id}/image`,
+  thumbnailUrl: (id) => `/dra-mkt/api/criativos/${id}/thumb`,
+  favoritar: (id) => api.put(`/criativos/${id}/favorito`),
+  alterarStatus: (id, status) => api.put(`/criativos/${id}/status?status=${status}`),
+  deletar: (id) => api.delete(`/criativos/${id}`),
+};
+
+// API de Campanhas
+export const campanhasApi = {
+  listar: (params) => api.get('/campanhas/', { params }),
+  criar: (data) => api.post('/campanhas/', data),
+  detalhe: (id) => api.get(`/campanhas/${id}`),
+  atualizar: (id, data) => api.put(`/campanhas/${id}`, data),
+  deletar: (id) => api.delete(`/campanhas/${id}`),
+  alterarStatus: (id, status) => api.put(`/campanhas/${id}/status?status=${status}`),
+};
+
+// API de Templates
+export const templatesApi = {
+  listar: () => api.get('/templates/'),
+  criar: (data) => api.post('/templates/', data),
+  detalhe: (id) => api.get(`/templates/${id}`),
+  atualizar: (id, data) => api.put(`/templates/${id}`, data),
+  deletar: (id) => api.delete(`/templates/${id}`),
+  defaults: () => api.get('/templates/defaults'),
+};
