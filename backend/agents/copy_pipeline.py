@@ -149,9 +149,15 @@ async def gerar_copys(state: CopyState) -> dict:
         # Extrair conteúdo (tratar diferentes formatos de resposta)
         content = response.content
         
-        # Se for uma lista (caso do Gemini), converter para string
+        # Se for uma lista (caso do Gemini), extrair o texto dos objetos
         if isinstance(content, list):
-            content = " ".join(str(item) for item in content)
+            parts = []
+            for item in content:
+                if isinstance(item, dict) and 'text' in item:
+                    parts.append(item['text'])
+                else:
+                    parts.append(str(item))
+            content = "".join(parts)
         
         content = content.strip()
         
@@ -171,8 +177,13 @@ async def gerar_copys(state: CopyState) -> dict:
             
     except (json.JSONDecodeError, IndexError, ValueError, AttributeError) as e:
         # Fallback: retornar variante de erro com o conteúdo recebido
-        error_content = str(response.content)[:200] if hasattr(response, 'content') else str(response)[:200]
-        variantes = [{"headline": "Erro na geração", "body_text": f"Erro: {str(e)[:50]} | Conteúdo: {error_content}", "cta": "Tentar novamente"}]
+        raw_content = response.content
+        if isinstance(raw_content, list):
+            raw_str = "".join(str(item) for item in raw_content)
+        else:
+            raw_str = str(raw_content)
+        error_content = raw_str[:300]
+        variantes = [{"headline": "Erro na geração", "body_text": f"Erro: {str(e)[:80]} | Conteúdo: {error_content}", "cta": "Tentar novamente"}]
 
     return {
         "variantes": variantes,
@@ -202,9 +213,15 @@ async def revisar_copys(state: CopyState) -> dict:
         # Extrair conteúdo (tratar diferentes formatos de resposta)
         content = response.content
         
-        # Se for uma lista (caso do Gemini), converter para string
+        # Se for uma lista (caso do Gemini), extrair o texto dos objetos
         if isinstance(content, list):
-            content = " ".join(str(item) for item in content)
+            parts = []
+            for item in content:
+                if isinstance(item, dict) and 'text' in item:
+                    parts.append(item['text'])
+                else:
+                    parts.append(str(item))
+            content = "".join(parts)
         
         content = content.strip()
         
