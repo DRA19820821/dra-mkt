@@ -11,6 +11,11 @@ from config import APP_NAME, APP_VERSION, BASE_PATH, STATIC_DIR
 from database import init_db
 from auth import verify_auth
 
+# Routers
+from routers.produtos import router as produtos_router
+from routers.personas import router as personas_router
+from routers.copys import router as copys_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,21 +27,22 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=APP_NAME,
     version=APP_VERSION,
-    root_path=BASE_PATH,  # IMPORTANTE para funcionar atrás do Nginx com /dra-mkt
+    root_path=BASE_PATH,
     lifespan=lifespan,
 )
 
-# CORS — permitir o frontend React em dev
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Em produção, restringir ao domínio
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# Health check (público)
+# ===== API Routes (devem vir antes do SPA fallback) =====
+
 @app.get("/api/health")
 async def health():
     return {
@@ -46,21 +52,26 @@ async def health():
     }
 
 
-# Protected route example
 @app.get("/api/me")
 async def get_current_user(user=Depends(verify_auth)):
     return user
 
 
-# Routers (serão adicionados na Fase 2)
-# from routers.copys import router as copys_router
-# app.include_router(copys_router, prefix="/api/copys", tags=["copys"])
+# Routers CRUD
+app.include_router(produtos_router, prefix="/api/produtos", tags=["produtos"])
+app.include_router(personas_router, prefix="/api/personas", tags=["personas"])
+app.include_router(copys_router, prefix="/api/copys", tags=["copys"])
 
 
-# SPA fallback - serve index.html para rotas não-API
+# ===== SPA Fallback (deve vir DEPOIS de todas as API routes) =====
+
 @app.get("/{path:path}")
 async def serve_spa(path: str):
     """Serve o frontend React para qualquer rota não-API."""
+    # Não interceptar rotas da API
+    if path.startswith("api/"):
+        return {"detail": "Not Found"}
+    
     index_file = STATIC_DIR / "index.html"
     if index_file.exists():
         return FileResponse(str(index_file))
