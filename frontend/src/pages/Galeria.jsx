@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Images, Star, Trash2, Download, X, Filter } from 'lucide-react'
+import { Images, Star, Trash2, Download, X, Filter, CheckCircle } from 'lucide-react'
 import { criativosApi } from '../api'
 import toast from 'react-hot-toast'
 
@@ -35,6 +35,19 @@ export default function Galeria() {
       carregarCriativos()
     } catch (error) {
       toast.error('Erro ao atualizar')
+    }
+  }
+
+  async function alterarStatus(id, status) {
+    try {
+      await criativosApi.alterarStatus(id, status)
+      toast.success(`Criativo ${status === 'aprovado' ? 'aprovado' : 'atualizado'}!`)
+      carregarCriativos()
+      if (selecionado?.id === id) {
+        setSelecionado({ ...selecionado, status })
+      }
+    } catch (error) {
+      toast.error('Erro ao atualizar status')
     }
   }
 
@@ -215,11 +228,20 @@ export default function Galeria() {
               </div>
             </div>
             
-            <div className="p-4 border-t flex gap-3">
+            <div className="p-4 border-t flex flex-wrap gap-2">
+              {selecionado.status !== 'aprovado' && (
+                <button
+                  onClick={() => alterarStatus(selecionado.id, 'aprovado')}
+                  className="btn bg-green-600 hover:bg-green-700 text-white flex-1"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  Aprovar
+                </button>
+              )}
               <a
                 href={criativosApi.imagemUrl(selecionado.id)}
                 download
-                className="btn btn-primary flex-1"
+                className="btn btn-primary"
               >
                 <Download className="w-4 h-4" />
                 Download
