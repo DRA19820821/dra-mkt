@@ -67,7 +67,7 @@ async def listar_personas(db=Depends(get_db), user=Depends(verify_auth)):
 @router.post("/", status_code=201)
 async def criar_persona(data: PersonaCreate, db=Depends(get_db), user=Depends(verify_auth)):
     cursor = db.execute(
-        "INSERT INTO personas (nome, descricao, faixa_etaria, interesses, dores, objetivos) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO personas (nome, descricao, faixa_etaria, interesses, dores, objetivos) VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
         (
             data.nome,
             data.descricao,

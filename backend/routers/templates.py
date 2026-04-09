@@ -27,14 +27,14 @@ class TemplateUpdate(BaseModel):
 
 @router.get("/")
 async def listar_templates(db=Depends(get_db), user=Depends(verify_auth)):
-    rows = db.execute("SELECT * FROM prompt_templates WHERE ativo = 1 ORDER BY created_at DESC").fetchall()
+    rows = db.execute("SELECT * FROM prompt_templates WHERE ativo = TRUE ORDER BY created_at DESC").fetchall()
     return [dict(r) for r in rows]
 
 
 @router.post("/", status_code=201)
 async def criar_template(data: TemplateCreate, db=Depends(get_db), user=Depends(verify_auth)):
     cursor = db.execute(
-        "INSERT INTO prompt_templates (nome, tipo_campanha, template_gerador, template_revisor) VALUES (?, ?, ?, ?)",
+        "INSERT INTO prompt_templates (nome, tipo_campanha, template_gerador, template_revisor) VALUES (?, ?, ?, ?) RETURNING id",
         (data.nome, data.tipo_campanha, data.template_gerador, data.template_revisor),
     )
     db.commit()
@@ -73,6 +73,6 @@ async def atualizar_template(template_id: int, data: TemplateUpdate, db=Depends(
 
 @router.delete("/{template_id}")
 async def deletar_template(template_id: int, db=Depends(get_db), user=Depends(verify_auth)):
-    db.execute("UPDATE prompt_templates SET ativo = 0 WHERE id = ?", (template_id,))
+    db.execute("UPDATE prompt_templates SET ativo = FALSE WHERE id = ?", (template_id,))
     db.commit()
     return {"ok": True}

@@ -3,6 +3,28 @@ import { Image as ImageIcon, Sparkles, Download, RefreshCw, Check } from 'lucide
 import { produtosApi, personasApi, criativosApi } from '../api'
 import toast from 'react-hot-toast'
 
+// Função auxiliar para download de imagem
+async function downloadImage(imageUrl, filename = 'criativo.png') {
+  try {
+    const response = await fetch(imageUrl, { credentials: 'include' })
+    if (!response.ok) throw new Error('Erro ao baixar imagem')
+    
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Erro no download:', error)
+    // Fallback: abrir em nova aba
+    window.open(imageUrl, '_blank')
+  }
+}
+
 export default function GerarCriativo() {
   const [produtos, setProdutos] = useState([])
   const [personas, setPersonas] = useState([])
@@ -300,14 +322,16 @@ export default function GerarCriativo() {
               </div>
 
               <div className="flex gap-3">
-                <a
-                  href={criativosApi.imagemUrl(resultado.criativo_id)}
-                  download
+                <button
+                  onClick={() => downloadImage(
+                    criativosApi.imagemUrl(resultado.criativo_id),
+                    `criativo-${resultado.criativo_id}.png`
+                  )}
                   className="flex-1 btn btn-primary"
                 >
                   <Download className="w-5 h-5" />
                   Download PNG
-                </a>
+                </button>
                 <button
                   onClick={() => {
                     setResultado(null)

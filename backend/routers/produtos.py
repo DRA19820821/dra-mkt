@@ -28,14 +28,14 @@ class ProdutoUpdate(BaseModel):
 
 @router.get("/")
 async def listar_produtos(db=Depends(get_db), user=Depends(verify_auth)):
-    rows = db.execute("SELECT * FROM produtos WHERE ativo = 1 ORDER BY created_at DESC").fetchall()
+    rows = db.execute("SELECT * FROM produtos WHERE ativo = TRUE ORDER BY created_at DESC").fetchall()
     return [dict(r) for r in rows]
 
 
 @router.post("/", status_code=201)
 async def criar_produto(data: ProdutoCreate, db=Depends(get_db), user=Depends(verify_auth)):
     cursor = db.execute(
-        "INSERT INTO produtos (nome, descricao, preco, url_vendas) VALUES (?, ?, ?, ?)",
+        "INSERT INTO produtos (nome, descricao, preco, url_vendas) VALUES (?, ?, ?, ?) RETURNING id",
         (data.nome, data.descricao, data.preco, data.url_vendas),
     )
     db.commit()
@@ -64,6 +64,6 @@ async def atualizar_produto(produto_id: int, data: ProdutoUpdate, db=Depends(get
 
 @router.delete("/{produto_id}")
 async def deletar_produto(produto_id: int, db=Depends(get_db), user=Depends(verify_auth)):
-    db.execute("UPDATE produtos SET ativo = 0 WHERE id = ?", (produto_id,))
+    db.execute("UPDATE produtos SET ativo = FALSE WHERE id = ?", (produto_id,))
     db.commit()
     return {"ok": True}

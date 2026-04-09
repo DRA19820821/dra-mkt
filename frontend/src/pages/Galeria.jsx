@@ -3,6 +3,28 @@ import { Images, Star, Trash2, Download, X, Filter, CheckCircle } from 'lucide-r
 import { criativosApi } from '../api'
 import toast from 'react-hot-toast'
 
+// Função auxiliar para download de imagem
+async function downloadImage(imageUrl, filename = 'criativo.png') {
+  try {
+    const response = await fetch(imageUrl, { credentials: 'include' })
+    if (!response.ok) throw new Error('Erro ao baixar imagem')
+    
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Erro no download:', error)
+    // Fallback: abrir em nova aba
+    window.open(imageUrl, '_blank')
+  }
+}
+
 export default function Galeria() {
   const [criativos, setCriativos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -238,14 +260,16 @@ export default function Galeria() {
                   Aprovar
                 </button>
               )}
-              <a
-                href={criativosApi.imagemUrl(selecionado.id)}
-                download
+              <button
+                onClick={() => downloadImage(
+                  criativosApi.imagemUrl(selecionado.id),
+                  `criativo-${selecionado.id}.png`
+                )}
                 className="btn btn-primary"
               >
                 <Download className="w-4 h-4" />
                 Download
-              </a>
+              </button>
               <button
                 onClick={() => toggleFavorito(selecionado.id)}
                 className={`btn ${selecionado.favorito ? 'btn-secondary' : 'btn-outline'}`}

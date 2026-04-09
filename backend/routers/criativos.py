@@ -84,7 +84,7 @@ async def gerar_criativo_endpoint(
                 """INSERT INTO criativos 
                    (produto_id, persona_id, tipo, formato, prompt_usado, modelo_ia,
                     provider, imagem_path, thumbnail_path, tamanho_bytes, status)
-                   VALUES (?, ?, ?, ?, ?, ?, 'google', ?, ?, ?, 'rascunho')""",
+                   VALUES (?, ?, ?, ?, ?, ?, 'google', ?, ?, ?, 'rascunho') RETURNING id""",
                 (
                     data.produto_id, data.persona_id,
                     data.formato, data.formato,

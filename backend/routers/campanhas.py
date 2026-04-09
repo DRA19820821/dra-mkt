@@ -74,7 +74,7 @@ async def criar_campanha(data: CampanhaCreate, db=Depends(get_db), user=Depends(
         """INSERT INTO campanhas 
            (nome, produto_id, persona_id, objetivo, tom, copy_id, criativo_id,
             plataforma, orcamento_diario, publico_alvo, notas)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id""",
         (
             data.nome, data.produto_id, data.persona_id, data.objetivo, data.tom,
             data.copy_id, data.criativo_id, data.plataforma, data.orcamento_diario,

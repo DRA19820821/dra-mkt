@@ -105,7 +105,7 @@ async def gerar_copy(
             cursor = db.execute(
                 """INSERT INTO copys 
                    (produto_id, persona_id, objetivo, tom, provider_llm, model_llm, status)
-                   VALUES (?, ?, ?, ?, ?, ?, 'rascunho')""",
+                   VALUES (?, ?, ?, ?, ?, ?, 'rascunho') RETURNING id""",
                 (data.produto_id, data.persona_id, data.objetivo, data.tom, data.provider, data.model),
             )
             copy_id = cursor.lastrowid
@@ -174,7 +174,7 @@ async def listar_copys(
         params.append(status)
     if favorito is not None:
         query += " AND c.favorito = ?"
-        params.append(int(favorito))
+        params.append(favorito)
     query += " ORDER BY c.created_at DESC"
     rows = db.execute(query, params).fetchall()
     return [dict(r) for r in rows]

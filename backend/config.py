@@ -25,3 +25,9 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 APP_NAME = "DRA Marketing"
 APP_VERSION = "0.1.0"
 BASE_PATH = "/dra-mkt"  # Prefixo de rota para o Nginx
+
+# PostgreSQL — lê do .env ou usa valor padrão
+DATABASE_URL = os.getenv(
+    "DATABASE_URL_MKT",
+    "postgresql://dra_user:VPPNAGbjS136DDE2EeTUy4qzmoYTMX0@localhost:5432/dra_mkt"
+)
