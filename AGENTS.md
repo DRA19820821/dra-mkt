@@ -98,12 +98,19 @@ Geração de imagens via IA. Suporta múltiplos providers:
 | **Image-01** | **Minimax** | **$0.02/img** | **Limite: 1500 chars no prompt** |
 
 **Notas sobre Minimax**:
-1. **Limite de prompt (1500 chars)**: O sistema automaticamente:
+
+1. **Região da API (IMPORTANTE!)**: A Minimax tem dois endpoints separados com API keys diferentes:
+   - **Global** (`MINIMAX_REGION=global`): `api.minimax.io` - Contas internacionais
+   - **Mainland** (`MINIMAX_REGION=mainland`): `api.minimaxi.com` - Contas chinesas
+   
+   Se receber "invalid api key", verifique se a região corresponde à sua conta!
+
+2. **Limite de prompt (1500 chars)**: O sistema automaticamente:
    - Usa um template de prompt mais conciso
    - Trunca descrições longas de produto/persona (200 chars cada)
    - Retorna erro amigável se ainda assim exceder o limite
 
-2. **Formatos suportados**: A API usa `aspect_ratio` em vez de dimensões fixas:
+3. **Formatos suportados**: A API usa `aspect_ratio` em vez de dimensões fixas:
    - Feed Quadrado (1:1) → 1024x1024
    - Feed Retrato (4:5) → 1152x864
    - Story (9:16) → 720x1280
@@ -183,6 +190,9 @@ OPENAI_API_KEY=sk-...
 
 # Image Generation Providers
 MINIMAX_API_KEY=ey...
+# Minimax region: 'global' (api.minimax.io) para contas internacionais 
+# ou 'mainland' (api.minimaxi.com) para contas chinesas
+MINIMAX_REGION=global
 ```
 
 ### Dependências

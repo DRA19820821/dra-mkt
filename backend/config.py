@@ -23,6 +23,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 # Image Generation Providers
 MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY", "")
+# Minimax region: "global" (api.minimax.io) ou "mainland" (api.minimaxi.com)
+MINIMAX_REGION = os.getenv("MINIMAX_REGION", "global")
 
 # App
 APP_NAME = "DRA Marketing"

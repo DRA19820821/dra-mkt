@@ -186,6 +186,12 @@ MINIMAX_ASPECT_RATIOS = {
     "feed_landscape": "16:9",  # 1200x628 -> aprox 16:9
 }
 
+# Endpoints da API Minimax por região
+MINIMAX_ENDPOINTS = {
+    "global": "https://api.minimax.io/v1/image_generation",      # Internacional
+    "mainland": "https://api.minimaxi.com/v1/image_generation",  # China
+}
+
 
 def _clean_base64(data: str) -> str:
     """
@@ -229,13 +235,21 @@ def _generate_minimax(prompt: str, model_id: str, formato: str = "feed_square") 
     """
     Chamada à API do Minimax para geração de imagens.
     Docs: https://platform.minimaxi.com/docs/api-reference/image-generation-t2i
+    
+    IMPORTANTE: A Minimax tem DUAS regiões com API keys diferentes:
+    - Global (api.minimax.io): Contas internacionais
+    - Mainland (api.minimaxi.com): Contas chinesas
     """
     api_key = os.getenv("MINIMAX_API_KEY")
     if not api_key:
-        raise ValueError("MINIMAX_API_KEY não configurada")
+        raise ValueError("MINIMAX_API_KEY não configurada no .env")
     
-    # Endpoint correto segundo documentação oficial
-    url = "https://api.minimaxi.com/v1/image_generation"
+    # Detectar região (global ou mainland)
+    region = os.getenv("MINIMAX_REGION", "global").lower().strip()
+    url = MINIMAX_ENDPOINTS.get(region, MINIMAX_ENDPOINTS["global"])
+    
+    # Debug: mostrar qual endpoint está sendo usado (sem expor a API key)
+    print(f"[Minimax] Usando região: {region} | Endpoint: {url}")
     
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -256,6 +270,16 @@ def _generate_minimax(prompt: str, model_id: str, formato: str = "feed_square") 
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=120)
         response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        # Capturar erro 401/403 específico de API key inválida
+        if response.status_code in (401, 403):
+            raise ValueError(
+                f"Minimax API key inválida (HTTP {response.status_code}). "
+                f"Verifique: (1) se a API key está correta, "
+                f"(2) se a região '{region}' corresponde à sua conta. "
+                f"Tente MINIMAX_REGION={'mainland' if region == 'global' else 'global'}"
+            )
+        raise ValueError(f"Minimax API error (HTTP {response.status_code}): {e}")
     except requests.exceptions.RequestException as e:
         raise ValueError(f"Erro na requisição Minimax: {e}")
     
