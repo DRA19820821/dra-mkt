@@ -88,7 +88,14 @@ Templates configuráveis por tipo de campanha.
 ---
 
 ### 5. Criativos (Imagens)
-Geração de imagens via Google Imagen (ou outros providers).
+Geração de imagens via IA. Suporta múltiplos providers:
+
+| Modelo | Provider | Preço Aprox. | Características |
+|--------|----------|--------------|-----------------|
+| Nano Banana | Google | $0.039/img | Econômico, Gemini 2.5 Flash |
+| Nano Banana 2 | Google | $0.067/img | ⭐ Recomendado, Gemini 3.1 Flash |
+| Nano Banana Pro | Google | $0.134/img | Premium, Gemini 3 Pro |
+| **Image-01** | **Minimax** | **$0.02/img** | **Novo! Bom custo-benefício** |
 
 **Tabela**: `criativos`
 - `id`, `produto_id`, `persona_id`, `campanha_id`
@@ -161,6 +168,9 @@ DRA_AUTH_URL=http://127.0.0.1:8099
 ANTHROPIC_API_KEY=sk-...
 GOOGLE_API_KEY=AI...
 OPENAI_API_KEY=sk-...
+
+# Image Generation Providers
+MINIMAX_API_KEY=ey...
 ```
 
 ### Dependências
