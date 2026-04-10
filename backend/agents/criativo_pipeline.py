@@ -128,7 +128,7 @@ IMAGE_MODELS = {
 }
 
 
-# ===== PROMPT =====
+# ===== PROMPTS =====
 
 PROMPT_CRIATIVO = """Crie uma imagem profissional para um anúncio de {plataforma}.
 
@@ -160,6 +160,22 @@ PROMPT_CRIATIVO = """Crie uma imagem profissional para um anúncio de {plataform
 - A imagem deve funcionar como um anúncio que para o scroll
 
 {instrucoes_adicionais}"""
+
+# Prompt otimizado para Minimax (limite de 1500 caracteres)
+PROMPT_CRIATIVO_MINIMAX = """Anúncio profissional para {plataforma}.
+
+PRODUTO: {produto_nome}. {produto_descricao}
+
+PÚBLICO: {persona_nome}. {persona_descricao}
+
+OBJETIVO: {objetivo} | TOM: {tom} | FORMATO: {formato_label} | ESTILO: {estilo}
+
+DIRETRIZES: Estilo profissional educação online. Cores: azul #1E3A5F e dourado #D4A853. Mascote cérebro azul antropomórfico se fizer sentido. Texto legível e curto: "{headline}". Sem logos redes sociais. Sem marcas d'água. Fundo limpo. Anúncio que para o scroll.
+
+{instrucoes_adicionais}"""
+
+# Limite de caracteres do Minimax (deixando margem de segurança)
+MINIMAX_PROMPT_LIMIT = 1400
 
 
 def _generate_minimax(prompt: str, model_id: str) -> bytes:
@@ -251,6 +267,81 @@ def _generate_sync(prompt: str, model_config: dict, formato: str = "feed_square"
         raise ValueError(f"Tipo de modelo desconhecido: {model_type}")
 
 
+def _truncate_text(text: str, max_length: int, suffix: str = "...") -> str:
+    """Trunca texto para o limite de caracteres especificado."""
+    if not text:
+        return ""
+    if len(text) <= max_length:
+        return text
+    return text[: max_length - len(suffix)].rsplit(" ", 1)[0] + suffix
+
+
+def _build_prompt(
+    produto: dict,
+    persona: dict,
+    objetivo: str,
+    tom: str,
+    formato: str,
+    estilo: str,
+    headline: str,
+    instrucoes_adicionais: str,
+    is_minimax: bool = False,
+) -> str:
+    """Constrói o prompt apropriado baseado no provider."""
+    fmt = AD_FORMATS.get(formato)
+    if not fmt:
+        raise ValueError(f"Formato desconhecido: {formato}")
+    
+    # Truncar campos longos para Minimax
+    produto_nome = produto.get("nome", "")
+    produto_descricao = produto.get("descricao", "")
+    persona_nome = persona.get("nome", "")
+    persona_descricao = persona.get("descricao", "")
+    
+    if is_minimax:
+        # Versão concisa para Minimax
+        produto_descricao = _truncate_text(produto_descricao, 200)
+        persona_descricao = _truncate_text(persona_descricao, 200)
+        instrucoes = _truncate_text(instrucoes_adicionais, 150)
+        
+        prompt = PROMPT_CRIATIVO_MINIMAX.format(
+            plataforma="Instagram/Facebook",
+            produto_nome=produto_nome,
+            produto_descricao=produto_descricao,
+            persona_nome=persona_nome,
+            persona_descricao=persona_descricao,
+            objetivo=objetivo,
+            tom=tom,
+            formato_label=fmt["label"],
+            estilo=estilo,
+            headline=headline or "Aprovação Garantida",
+            instrucoes_adicionais=instrucoes,
+        )
+        
+        # Garantir que não excede o limite
+        if len(prompt) > MINIMAX_PROMPT_LIMIT:
+            prompt = prompt[:MINIMAX_PROMPT_LIMIT].rsplit(".", 1)[0] + "."
+        
+        return prompt
+    
+    # Versão completa para Google/Gemini
+    return PROMPT_CRIATIVO.format(
+        plataforma="Instagram e Facebook",
+        produto_nome=produto_nome,
+        produto_descricao=produto_descricao,
+        persona_nome=persona_nome,
+        persona_descricao=persona_descricao,
+        objetivo=objetivo,
+        tom=tom,
+        formato_label=fmt["label"],
+        width=fmt["width"],
+        height=fmt["height"],
+        estilo=estilo,
+        headline=headline,
+        instrucoes_adicionais=instrucoes_adicionais,
+    )
+
+
 async def gerar_criativo(
     produto: dict,
     persona: dict,
@@ -269,25 +360,26 @@ async def gerar_criativo(
     if not model_config:
         raise ValueError(f"Modelo desconhecido: {modelo}")
     
-    fmt = AD_FORMATS.get(formato)
-    if not fmt:
-        raise ValueError(f"Formato desconhecido: {formato}")
+    is_minimax = model_config.get("provider") == "minimax"
     
-    prompt = PROMPT_CRIATIVO.format(
-        plataforma="Instagram e Facebook",
-        produto_nome=produto.get("nome", ""),
-        produto_descricao=produto.get("descricao", ""),
-        persona_nome=persona.get("nome", ""),
-        persona_descricao=persona.get("descricao", ""),
+    prompt = _build_prompt(
+        produto=produto,
+        persona=persona,
         objetivo=objetivo,
         tom=tom,
-        formato_label=fmt["label"],
-        width=fmt["width"],
-        height=fmt["height"],
+        formato=formato,
         estilo=estilo,
         headline=headline,
         instrucoes_adicionais=instrucoes_adicionais,
+        is_minimax=is_minimax,
     )
+    
+    # Validar limite do Minimax
+    if is_minimax and len(prompt) > 1500:
+        raise ValueError(
+            f"Prompt muito longo para Minimax ({len(prompt)} chars). "
+            f"Limite: 1500 caracteres. Reduza a descrição do produto/persona."
+        )
     
     img_bytes = await asyncio.to_thread(_generate_sync, prompt, model_config, formato)
     
