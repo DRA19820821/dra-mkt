@@ -178,47 +178,112 @@ DIRETRIZES: Estilo profissional educação online. Cores: azul #1E3A5F e dourado
 MINIMAX_PROMPT_LIMIT = 1400
 
 
-def _generate_minimax(prompt: str, model_id: str) -> bytes:
+# Mapeamento de formatos para aspect_ratio do Minimax
+MINIMAX_ASPECT_RATIOS = {
+    "feed_square": "1:1",      # 1080x1080 -> 1024x1024
+    "feed_portrait": "4:5",    # 1080x1350 -> aprox 4:5
+    "story": "9:16",           # 1080x1920 -> 9:16
+    "feed_landscape": "16:9",  # 1200x628 -> aprox 16:9
+}
+
+
+def _clean_base64(data: str) -> str:
+    """
+    Limpa e corrige string base64 comum em APIs.
+    - Remove prefixo data URI (data:image/jpeg;base64,)
+    - Remove whitespace
+    - Adiciona padding se necessário
+    """
+    if not data:
+        raise ValueError("Dados base64 vazios")
+    
+    # Remover prefixo data URI se existir
+    if ',' in data:
+        data = data.split(',')[1]
+    
+    # Remover whitespace e novas linhas
+    data = data.strip().replace('\n', '').replace('\r', '').replace(' ', '')
+    
+    # Adicionar padding se necessário (base64 precisa ser múltiplo de 4)
+    padding_needed = len(data) % 4
+    if padding_needed:
+        data += '=' * (4 - padding_needed)
+    
+    return data
+
+
+def _safe_b64decode(data: str) -> bytes:
+    """
+    Decodifica base64 com tratamento robusto de erros.
+    """
+    try:
+        cleaned = _clean_base64(data)
+        return base64.b64decode(cleaned, validate=True)
+    except Exception as e:
+        # Log do erro para debug
+        sample = data[:100] if len(data) > 100 else data
+        raise ValueError(f"Falha ao decodificar base64: {e}. Dados recebidos: {sample}...")
+
+
+def _generate_minimax(prompt: str, model_id: str, formato: str = "feed_square") -> bytes:
     """
     Chamada à API do Minimax para geração de imagens.
-    Docs: https://www.minimaxi.com/document/image
+    Docs: https://platform.minimaxi.com/docs/api-reference/image-generation-t2i
     """
     api_key = os.getenv("MINIMAX_API_KEY")
     if not api_key:
         raise ValueError("MINIMAX_API_KEY não configurada")
     
-    url = "https://api.minimaxi.chat/v1/image_generation"
+    # Endpoint correto segundo documentação oficial
+    url = "https://api.minimaxi.com/v1/image_generation"
     
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
     
+    # Mapear formato para aspect_ratio
+    aspect_ratio = MINIMAX_ASPECT_RATIOS.get(formato, "1:1")
+    
     payload = {
         "model": model_id,
         "prompt": prompt,
         "n": 1,
-        "aspect_ratio": "1:1",  # Padrão, será ajustado pelo formato
+        "aspect_ratio": aspect_ratio,
+        "response_format": "base64",  # ESSENCIAL: solicitar base64 explicitamente
     }
     
-    response = requests.post(url, headers=headers, json=payload, timeout=120)
-    response.raise_for_status()
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=120)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        raise ValueError(f"Erro na requisição Minimax: {e}")
     
     data = response.json()
     
-    # Verificar se há erro na resposta
-    if data.get("base_resp", {}).get("status_code") != 0:
-        error_msg = data.get("base_resp", {}).get("status_msg", "Erro desconhecido")
+    # Verificar erro na resposta (estrutura pode variar)
+    base_resp = data.get("base_resp", {})
+    if base_resp and base_resp.get("status_code", 0) != 0:
+        error_msg = base_resp.get("status_msg", "Erro desconhecido")
         raise ValueError(f"Minimax API error: {error_msg}")
     
-    # Extrair imagem base64
-    images = data.get("data", {}).get("image_urls", [])
-    if not images:
-        raise ValueError("Minimax não retornou imagem")
+    # Extrair imagem base64 do campo correto
+    response_data = data.get("data", {})
     
-    # Decodificar base64
-    img_base64 = images[0]
-    return base64.b64decode(img_base64)
+    # Tentar diferentes campos possíveis na resposta
+    images = response_data.get("image_base64") or response_data.get("images") or response_data.get("image_urls")
+    
+    if not images:
+        # Debug: mostrar estrutura da resposta
+        raise ValueError(f"Minimax não retornou imagem. Resposta: {list(response_data.keys())}")
+    
+    if isinstance(images, list):
+        img_data = images[0]
+    else:
+        img_data = images
+    
+    # Decodificar base64 com tratamento robusto
+    return _safe_b64decode(img_data)
 
 
 def _generate_sync(prompt: str, model_config: dict, formato: str = "feed_square") -> bytes:
@@ -229,7 +294,7 @@ def _generate_sync(prompt: str, model_config: dict, formato: str = "feed_square"
     model_type = model_config["type"]
     
     if model_type == "minimax":
-        return _generate_minimax(prompt, model_id)
+        return _generate_minimax(prompt, model_id, formato)
     
     # Google/Gemini models
     api_key = os.getenv("GOOGLE_API_KEY")
