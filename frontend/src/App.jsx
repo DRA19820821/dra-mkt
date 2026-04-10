@@ -10,6 +10,8 @@ import GerarCriativo from './pages/GerarCriativo'
 import Galeria from './pages/Galeria'
 import Campanhas from './pages/Campanhas'
 import Templates from './pages/Templates'
+import MetaConnect from './pages/MetaConnect'
+import Performance from './pages/Performance'
 
 export default function App() {
   return (
@@ -41,6 +43,8 @@ export default function App() {
           <Route path="produtos" element={<Produtos />} />
           <Route path="personas" element={<Personas />} />
           <Route path="templates" element={<Templates />} />
+          <Route path="meta-connect" element={<MetaConnect />} />
+          <Route path="performance" element={<Performance />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

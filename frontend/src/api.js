@@ -110,7 +110,7 @@ export const criativosApi = {
 
 // API de Campanhas
 export const campanhasApi = {
-  listar: (params) => api.get('/campanhas/', { params }),
+  listar: (params = {}) => api.get('/campanhas/', { params }),
   criar: (data) => api.post('/campanhas/', data),
   detalhe: (id) => api.get(`/campanhas/${id}`),
   atualizar: (id, data) => api.put(`/campanhas/${id}`, data),
@@ -126,4 +126,30 @@ export const templatesApi = {
   atualizar: (id, data) => api.put(`/templates/${id}`, data),
   deletar: (id) => api.delete(`/templates/${id}`),
   defaults: () => api.get('/templates/defaults'),
+};
+
+// API Meta Marketing
+export const metaApi = {
+  // Config
+  getConfig: () => api.get('/meta/config'),
+  saveConfig: (data) => api.post('/meta/config', data),
+  validate: () => api.post('/meta/validate'),
+  
+  // Publicação
+  publish: (campanhaId) => api.post(`/meta/publish/${campanhaId}`),
+  export: (campanhaId) => api.post(`/meta/export/${campanhaId}`, {}, { responseType: 'blob' }),
+  listPublicacoes: () => api.get('/meta/publicacoes'),
+  getPublicacao: (id) => api.get(`/meta/publicacoes/${id}`),
+  
+  // Ações
+  requestAction: (data) => api.post('/meta/actions/request', data),
+  listPending: () => api.get('/meta/actions/pending'),
+  approveAction: (id) => api.post(`/meta/actions/${id}/approve`),
+  rejectAction: (id) => api.post(`/meta/actions/${id}/reject`),
+  
+  // Métricas
+  syncMetrics: (pubId) => api.post(`/meta/metrics/sync/${pubId}`),
+  syncAll: () => api.post('/meta/metrics/sync-all'),
+  getMetrics: (pubId, days) => api.get(`/meta/metrics/${pubId}`, { params: { days } }),
+  getSummary: () => api.get('/meta/metrics/summary'),
 };

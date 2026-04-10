@@ -183,6 +183,76 @@ def init_db():
             created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """,
+        # Meta Marketing API - Configuração
+        """
+        CREATE TABLE IF NOT EXISTS meta_config (
+            id              SERIAL PRIMARY KEY,
+            app_id          TEXT NOT NULL,
+            ad_account_id   TEXT NOT NULL,
+            page_id         TEXT NOT NULL,
+            access_token    TEXT NOT NULL,
+            api_version     TEXT DEFAULT 'v25.0',
+            is_valid        BOOLEAN DEFAULT TRUE,
+            last_validated  TIMESTAMP,
+            created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
+        # Meta Marketing API - Publicações
+        """
+        CREATE TABLE IF NOT EXISTS meta_publicacoes (
+            id                  SERIAL PRIMARY KEY,
+            campanha_id         INTEGER REFERENCES campanhas(id) ON DELETE SET NULL,
+            meta_campaign_id    TEXT,
+            meta_adset_id       TEXT,
+            meta_ad_id          TEXT,
+            meta_creative_id    TEXT,
+            meta_image_hash     TEXT,
+            status_meta         TEXT DEFAULT 'PAUSED',
+            status_sync         TEXT DEFAULT 'pending',
+            orcamento_diario    REAL,
+            data_inicio         DATE,
+            data_fim            DATE,
+            targeting_json      TEXT,
+            error_log           TEXT,
+            created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
+        # Meta Marketing API - Métricas
+        """
+        CREATE TABLE IF NOT EXISTS meta_metricas (
+            id                  SERIAL PRIMARY KEY,
+            publicacao_id       INTEGER REFERENCES meta_publicacoes(id) ON DELETE CASCADE,
+            data_referencia     DATE NOT NULL,
+            impressions         INTEGER DEFAULT 0,
+            clicks              INTEGER DEFAULT 0,
+            spend               REAL DEFAULT 0,
+            reach               INTEGER DEFAULT 0,
+            cpm                 REAL,
+            cpc                 REAL,
+            ctr                 REAL,
+            conversions         INTEGER DEFAULT 0,
+            cost_per_conversion REAL,
+            actions_json        TEXT,
+            created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(publicacao_id, data_referencia)
+        )
+        """,
+        # Meta Marketing API - Ações pendentes
+        """
+        CREATE TABLE IF NOT EXISTS meta_acoes_pendentes (
+            id              SERIAL PRIMARY KEY,
+            publicacao_id   INTEGER REFERENCES meta_publicacoes(id) ON DELETE CASCADE,
+            tipo_acao       TEXT NOT NULL,
+            params_json     TEXT,
+            status          TEXT DEFAULT 'pendente',
+            aprovado_em     TIMESTAMP,
+            executado_em    TIMESTAMP,
+            error_log       TEXT,
+            created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
     ]
 
     for stmt in statements:

@@ -19,6 +19,12 @@ from routers.criativos import router as criativos_router
 from routers.campanhas import router as campanhas_router
 from routers.templates import router as templates_router
 
+# Meta Marketing API
+from routers.meta_config import router as meta_config_router
+from routers.meta_publish import router as meta_publish_router
+from routers.meta_actions import router as meta_actions_router
+from routers.meta_metrics import router as meta_metrics_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -67,6 +73,12 @@ app.include_router(copys_router, prefix="/api/copys", tags=["copys"])
 app.include_router(criativos_router, prefix="/api/criativos", tags=["criativos"])
 app.include_router(campanhas_router, prefix="/api/campanhas", tags=["campanhas"])
 app.include_router(templates_router, prefix="/api/templates", tags=["templates"])
+
+# Meta Marketing API Routers
+app.include_router(meta_config_router, prefix="/api/meta", tags=["meta-config"])
+app.include_router(meta_publish_router, prefix="/api/meta", tags=["meta-publish"])
+app.include_router(meta_actions_router, prefix="/api/meta/actions", tags=["meta-actions"])
+app.include_router(meta_metrics_router, prefix="/api/meta/metrics", tags=["meta-metrics"])
 
 
 # ===== SPA Fallback (deve vir DEPOIS de todas as API routes) =====

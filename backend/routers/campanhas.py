@@ -150,7 +150,7 @@ async def deletar_campanha(campanha_id: int, db=Depends(get_db), user=Depends(ve
 
 @router.put("/{campanha_id}/status")
 async def alterar_status_campanha(campanha_id: int, status: str, db=Depends(get_db), user=Depends(verify_auth)):
-    if status not in ("rascunho", "pronto", "ativa", "pausada", "concluida"):
+    if status not in ("rascunho", "pronto", "publicada", "ativa", "pausada", "concluida"):
         raise HTTPException(status_code=400, detail="Status inválido")
     db.execute("UPDATE campanhas SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (status, campanha_id))
     db.commit()

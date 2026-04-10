@@ -12,7 +12,9 @@ import {
   Image as ImageIcon,
   Megaphone,
   Images,
-  FileCode
+  FileCode,
+  Settings,
+  BarChart3
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -26,6 +28,11 @@ const navItems = [
   { path: '/produtos', icon: Package, label: 'Produtos' },
   { path: '/personas', icon: Users, label: 'Personas' },
   { path: '/templates', icon: FileCode, label: 'Templates' },
+]
+
+const metaNavItems = [
+  { path: '/meta-connect', icon: Settings, label: 'Meta Connect' },
+  { path: '/performance', icon: BarChart3, label: 'Performance' },
 ]
 
 export default function Layout() {
@@ -92,6 +99,37 @@ export default function Layout() {
               )
             })}
           </ul>
+          
+          {/* Meta Ads Section */}
+          <div className="mt-6 pt-4 border-t border-white/10">
+            <p className="px-4 text-xs font-medium text-blue-300/70 uppercase tracking-wider mb-2">
+              Meta Ads
+            </p>
+            <ul className="space-y-1">
+              {metaNavItems.map(({ path, icon: Icon, label }) => {
+                const isActive = location.pathname === path || location.pathname.startsWith(path + '/')
+                return (
+                  <li key={path}>
+                    <NavLink
+                      to={path}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`
+                        flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
+                        ${isActive
+                          ? 'bg-[#D4A853] text-white font-medium shadow-lg'
+                          : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                        }
+                      `}
+                    >
+                      <Icon className={`w-5 h-5 ${isActive ? '' : 'group-hover:scale-110'} transition-transform`} />
+                      <span>{label}</span>
+                      {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+                    </NavLink>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
         </nav>
 
         {/* Footer */}
@@ -121,9 +159,13 @@ export default function Layout() {
                 <span className="text-[#1E3A5F] font-medium">DRA-MKT</span>
                 <ChevronRight className="w-4 h-4" />
                 <span className="text-gray-900 font-medium">
-                  {navItems.find(item => 
-                    item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
-                  )?.label || 'Dashboard'}
+                  {(() => {
+                    const allItems = [...navItems, ...metaNavItems]
+                    const item = allItems.find(item => 
+                      item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
+                    )
+                    return item?.label || 'Dashboard'
+                  })()}
                 </span>
               </nav>
             </div>
