@@ -16,10 +16,13 @@ PORT = 8020
 # Auth
 DRA_AUTH_URL = os.getenv("DRA_AUTH_URL", "http://127.0.0.1:8099")
 
-# LLM Providers (serão expandidos na Fase 2)
+# LLM Providers
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+
+# Image Generation Providers
+MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY", "")
 
 # App
 APP_NAME = "DRA Marketing"

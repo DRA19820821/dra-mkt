@@ -8,6 +8,8 @@ import os
 import asyncio
 import uuid
 import json
+import base64
+import requests
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
@@ -95,6 +97,7 @@ IMAGE_MODELS = {
         "id": "gemini-2.5-flash-image",
         "label": "Nano Banana (Econômico)",
         "type": "gemini_native",
+        "provider": "google",
         "supports_edit": True,
         "price_approx": "$0.039/img",
     },
@@ -102,6 +105,7 @@ IMAGE_MODELS = {
         "id": "gemini-3.1-flash-image-preview",
         "label": "Nano Banana 2 ⭐ Recomendado",
         "type": "gemini_native",
+        "provider": "google",
         "supports_edit": True,
         "price_approx": "$0.067/img",
     },
@@ -109,8 +113,17 @@ IMAGE_MODELS = {
         "id": "gemini-3-pro-image-preview",
         "label": "Nano Banana Pro (Premium)",
         "type": "gemini_native",
+        "provider": "google",
         "supports_edit": True,
         "price_approx": "$0.134/img",
+    },
+    "minimax-image-01": {
+        "id": "image-01",
+        "label": "Minimax Image-01",
+        "type": "minimax",
+        "provider": "minimax",
+        "supports_edit": False,
+        "price_approx": "$0.02/img",
     },
 }
 
@@ -149,17 +162,65 @@ PROMPT_CRIATIVO = """Crie uma imagem profissional para um anúncio de {plataform
 {instrucoes_adicionais}"""
 
 
-def _generate_sync(prompt: str, model_config: dict) -> bytes:
+def _generate_minimax(prompt: str, model_id: str) -> bytes:
     """
-    Chamada SÍNCRONA ao SDK google-genai.
+    Chamada à API do Minimax para geração de imagens.
+    Docs: https://www.minimaxi.com/document/image
     """
+    api_key = os.getenv("MINIMAX_API_KEY")
+    if not api_key:
+        raise ValueError("MINIMAX_API_KEY não configurada")
+    
+    url = "https://api.minimaxi.chat/v1/image_generation"
+    
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    
+    payload = {
+        "model": model_id,
+        "prompt": prompt,
+        "n": 1,
+        "aspect_ratio": "1:1",  # Padrão, será ajustado pelo formato
+    }
+    
+    response = requests.post(url, headers=headers, json=payload, timeout=120)
+    response.raise_for_status()
+    
+    data = response.json()
+    
+    # Verificar se há erro na resposta
+    if data.get("base_resp", {}).get("status_code") != 0:
+        error_msg = data.get("base_resp", {}).get("status_msg", "Erro desconhecido")
+        raise ValueError(f"Minimax API error: {error_msg}")
+    
+    # Extrair imagem base64
+    images = data.get("data", {}).get("image_urls", [])
+    if not images:
+        raise ValueError("Minimax não retornou imagem")
+    
+    # Decodificar base64
+    img_base64 = images[0]
+    return base64.b64decode(img_base64)
+
+
+def _generate_sync(prompt: str, model_config: dict, formato: str = "feed_square") -> bytes:
+    """
+    Chamada SÍNCRONA ao SDK de geração de imagens.
+    """
+    model_id = model_config["id"]
+    model_type = model_config["type"]
+    
+    if model_type == "minimax":
+        return _generate_minimax(prompt, model_id)
+    
+    # Google/Gemini models
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
         raise ValueError("GOOGLE_API_KEY não configurada")
     
     client = genai.Client(api_key=api_key)
-    model_id = model_config["id"]
-    model_type = model_config["type"]
     
     if model_type == "gemini_native":
         response = client.models.generate_content(
@@ -228,7 +289,7 @@ async def gerar_criativo(
         instrucoes_adicionais=instrucoes_adicionais,
     )
     
-    img_bytes = await asyncio.to_thread(_generate_sync, prompt, model_config)
+    img_bytes = await asyncio.to_thread(_generate_sync, prompt, model_config, formato)
     
     file_info = _save_image_to_disk(img_bytes, formato)
     
@@ -238,6 +299,7 @@ async def gerar_criativo(
         "tamanho_bytes": file_info["tamanho_bytes"],
         "prompt_usado": prompt,
         "modelo_usado": model_config["id"],
+        "provider": model_config.get("provider", "google"),
         "formato": formato,
     }
 
@@ -249,6 +311,7 @@ def list_image_models():
             "key": key,
             "label": cfg["label"],
             "type": cfg["type"],
+            "provider": cfg.get("provider", "google"),
             "supports_edit": cfg["supports_edit"],
             "price_approx": cfg["price_approx"],
         }
