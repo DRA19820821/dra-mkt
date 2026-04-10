@@ -95,7 +95,12 @@ Geração de imagens via IA. Suporta múltiplos providers:
 | Nano Banana | Google | $0.039/img | Econômico, Gemini 2.5 Flash |
 | Nano Banana 2 | Google | $0.067/img | ⭐ Recomendado, Gemini 3.1 Flash |
 | Nano Banana Pro | Google | $0.134/img | Premium, Gemini 3 Pro |
-| **Image-01** | **Minimax** | **$0.02/img** | **Novo! Bom custo-benefício** |
+| **Image-01** | **Minimax** | **$0.02/img** | **Limite: 1500 chars no prompt** |
+
+**Nota sobre Minimax**: A API do Minimax tem limite de 1500 caracteres no prompt. O sistema automaticamente:
+- Usa um template de prompt mais conciso
+- Trunca descrições longas de produto/persona
+- Retorna erro amigável se ainda assim exceder o limite
 
 **Tabela**: `criativos`
 - `id`, `produto_id`, `persona_id`, `campanha_id`
