@@ -97,10 +97,17 @@ Geração de imagens via IA. Suporta múltiplos providers:
 | Nano Banana Pro | Google | $0.134/img | Premium, Gemini 3 Pro |
 | **Image-01** | **Minimax** | **$0.02/img** | **Limite: 1500 chars no prompt** |
 
-**Nota sobre Minimax**: A API do Minimax tem limite de 1500 caracteres no prompt. O sistema automaticamente:
-- Usa um template de prompt mais conciso
-- Trunca descrições longas de produto/persona
-- Retorna erro amigável se ainda assim exceder o limite
+**Notas sobre Minimax**:
+1. **Limite de prompt (1500 chars)**: O sistema automaticamente:
+   - Usa um template de prompt mais conciso
+   - Trunca descrições longas de produto/persona (200 chars cada)
+   - Retorna erro amigável se ainda assim exceder o limite
+
+2. **Formatos suportados**: A API usa `aspect_ratio` em vez de dimensões fixas:
+   - Feed Quadrado (1:1) → 1024x1024
+   - Feed Retrato (4:5) → 1152x864
+   - Story (9:16) → 720x1280
+   - Feed Paisagem (16:9) → 1280x720
 
 **Tabela**: `criativos`
 - `id`, `produto_id`, `persona_id`, `campanha_id`
