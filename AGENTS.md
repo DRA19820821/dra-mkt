@@ -193,6 +193,14 @@ MINIMAX_API_KEY=ey...
 # Minimax region: 'global' (api.minimax.io) para contas internacionais 
 # ou 'mainland' (api.minimaxi.com) para contas chinesas
 MINIMAX_REGION=global
+
+# Meta Marketing API
+META_APP_ID=1234567890
+META_APP_SECRET=your_app_secret
+META_ACCESS_TOKEN=EAAB...
+META_AD_ACCOUNT_ID=act_123456789
+META_PAGE_ID=1234567890
+META_API_VERSION=v25.0
 ```
 
 ### Dependências

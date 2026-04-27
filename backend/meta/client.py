@@ -14,7 +14,10 @@ from facebook_business.adobjects.adcreative import AdCreative
 from facebook_business.adobjects.adimage import AdImage
 
 
-def get_meta_api(access_token: str = None, app_id: str = None, app_secret: str = None):
+DEFAULT_API_VERSION = "v25.0"
+
+
+def get_meta_api(access_token: str = None, app_id: str = None, app_secret: str = None, api_version: str = None):
     """
     Inicializa e retorna a Meta API.
     Se não receber parâmetros, usa variáveis de ambiente.
@@ -22,11 +25,12 @@ def get_meta_api(access_token: str = None, app_id: str = None, app_secret: str =
     token = access_token or os.getenv("META_ACCESS_TOKEN")
     aid = app_id or os.getenv("META_APP_ID")
     secret = app_secret or os.getenv("META_APP_SECRET")
+    version = api_version or os.getenv("META_API_VERSION") or DEFAULT_API_VERSION
     
     if not token:
         raise ValueError("META_ACCESS_TOKEN não configurado")
     
-    api = FacebookAdsApi.init(aid, secret, token)
+    api = FacebookAdsApi.init(aid, secret, token, api_version=version)
     return api
 
 
@@ -38,13 +42,13 @@ def get_ad_account(ad_account_id: str = None):
     return AdAccount(account_id)
 
 
-def validate_connection(access_token: str = None, ad_account_id: str = None) -> dict:
+def validate_connection(access_token: str = None, ad_account_id: str = None, api_version: str = None) -> dict:
     """
     Testa a conexão com a Meta API.
     Retorna: {"valid": True, "account_name": "...", "currency": "BRL", ...}
     """
     try:
-        get_meta_api(access_token=access_token)
+        get_meta_api(access_token=access_token, api_version=api_version)
         account = get_ad_account(ad_account_id)
         info = account.api_get(fields=[
             'name', 'currency', 'account_status', 'business_name',

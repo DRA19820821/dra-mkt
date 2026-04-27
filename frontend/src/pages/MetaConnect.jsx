@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Settings, CheckCircle, AlertCircle, Save, TestTube, ExternalLink } from 'lucide-react'
+import { Settings, CheckCircle, AlertCircle, Save, TestTube, ExternalLink, RefreshCw } from 'lucide-react'
 import { metaApi } from '../api'
 import toast from 'react-hot-toast'
 
@@ -16,6 +16,7 @@ export default function MetaConnect() {
     access_token: '',
     api_version: 'v25.0',
   })
+  const [testError, setTestError] = useState(null)
 
   useEffect(() => {
     loadConfig()
@@ -33,11 +34,30 @@ export default function MetaConnect() {
           access_token: '', // Não mostra o token completo
           api_version: data.api_version || 'v25.0',
         })
+      } else if (data.env_available) {
+        // Se não há config no banco mas há credenciais no .env, carrega elas
+        await loadEnvConfig()
       }
     } catch (error) {
       toast.error('Erro ao carregar configuração')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function loadEnvConfig() {
+    try {
+      const { data } = await metaApi.getEnvConfig()
+      setFormData({
+        app_id: data.app_id || '',
+        ad_account_id: data.ad_account_id || '',
+        page_id: data.page_id || '',
+        access_token: data.access_token || '',
+        api_version: data.api_version || 'v25.0',
+      })
+      toast.success('Credenciais carregadas do arquivo .env')
+    } catch (error) {
+      console.log('Não foi possível carregar credenciais do .env')
     }
   }
 
@@ -62,16 +82,27 @@ export default function MetaConnect() {
 
   async function handleTest() {
     setTesting(true)
+    setTestError(null)
     try {
-      const { data } = await metaApi.validate()
+      // Se não há config salva, testa com as credenciais do formulário
+      const testData = !config?.configured ? {
+        access_token: formData.access_token,
+        ad_account_id: formData.ad_account_id,
+        api_version: formData.api_version,
+      } : null
+      
+      const { data } = await metaApi.validate(testData)
       if (data.valid) {
         toast.success(`✅ Conectado! Conta: ${data.account_name}`)
         loadConfig()
       } else {
-        toast.error(`❌ Erro: ${data.error}`)
+        setTestError(data.error)
+        toast.error(`❌ Erro na conexão`)
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erro ao testar conexão')
+      const msg = error.response?.data?.detail || 'Erro ao testar conexão'
+      setTestError(msg)
+      toast.error(msg)
     } finally {
       setTesting(false)
     }
@@ -214,6 +245,40 @@ export default function MetaConnect() {
             </select>
           </div>
 
+          {/* Erro de Teste */}
+          {testError && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-red-800 mb-1">Erro na conexão</h4>
+                  <p className="text-sm text-red-700 mb-2">{testError}</p>
+                  {testError.includes('access token could not be decrypted') && (
+                    <div className="text-sm text-red-600 bg-red-100/50 p-3 rounded-lg">
+                      <p className="font-medium mb-1">Possíveis causas:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>O token expirou (tokens do Meta expiram após 60 dias)</li>
+                        <li>O token foi gerado para um App ID diferente</li>
+                        <li>O token foi revogado</li>
+                      </ul>
+                      <p className="mt-2">
+                        <strong>Solução:</strong> Gere um novo token em{' '}
+                        <a 
+                          href="https://business.facebook.com/settings/system-users" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="underline"
+                        >
+                          business.facebook.com/settings/system-users
+                        </a>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
@@ -227,11 +292,22 @@ export default function MetaConnect() {
             <button
               type="button"
               onClick={handleTest}
-              disabled={testing || !config?.configured}
+              disabled={testing || (!config?.configured && !formData.access_token)}
               className="btn btn-outline"
             >
               <TestTube className="w-5 h-5" />
               {testing ? 'Testando...' : 'Testar Conexão'}
+            </button>
+
+            <button
+              type="button"
+              onClick={loadEnvConfig}
+              disabled={loading}
+              className="btn btn-outline"
+              title="Carregar credenciais do arquivo .env"
+            >
+              <RefreshCw className="w-5 h-5" />
+              Carregar do .env
             </button>
           </div>
         </form>

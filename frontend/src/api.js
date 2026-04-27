@@ -132,8 +132,9 @@ export const templatesApi = {
 export const metaApi = {
   // Config
   getConfig: () => api.get('/meta/config'),
+  getEnvConfig: () => api.get('/meta/config/env'),
   saveConfig: (data) => api.post('/meta/config', data),
-  validate: () => api.post('/meta/validate'),
+  validate: (data) => api.post('/meta/validate', data || {}),
   
   // Publicação
   publish: (campanhaId) => api.post(`/meta/publish/${campanhaId}`),

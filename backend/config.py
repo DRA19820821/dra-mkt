@@ -26,6 +26,12 @@ MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY", "")
 # Minimax region: "global" (api.minimax.io) ou "mainland" (api.minimaxi.com)
 MINIMAX_REGION = os.getenv("MINIMAX_REGION", "global")
 
+# Meta Marketing API (valores padrão do .env)
+META_APP_ID = os.getenv("META_APP_ID", "")
+META_AD_ACCOUNT_ID = os.getenv("META_AD_ACCOUNT_ID", "")
+META_PAGE_ID = os.getenv("META_PAGE_ID", "")
+META_ACCESS_TOKEN = os.getenv("META_ACCESS_TOKEN", "")
+
 # App
 APP_NAME = "DRA Marketing"
 APP_VERSION = "0.1.0"

@@ -13,6 +13,7 @@ from typing import Optional
 from database import get_db
 from auth import verify_auth
 from meta.client import validate_connection
+from config import META_APP_ID, META_AD_ACCOUNT_ID, META_PAGE_ID, META_ACCESS_TOKEN
 
 router = APIRouter()
 
@@ -27,10 +28,21 @@ class MetaConfigSave(BaseModel):
 
 @router.get("/config")
 async def get_config(db=Depends(get_db), user=Depends(verify_auth)):
-    """Retorna configuração atual (token mascarado)."""
+    """Retorna configuração atual (token mascarado). Se não houver no banco, retorna do .env"""
     row = db.execute("SELECT * FROM meta_config ORDER BY id DESC LIMIT 1").fetchone()
     if not row:
-        return {"configured": False}
+        # Retorna credenciais do .env se disponíveis
+        env_config = {
+            "configured": False,
+            "env_available": bool(META_ACCESS_TOKEN),
+            "app_id": META_APP_ID,
+            "ad_account_id": META_AD_ACCOUNT_ID,
+            "page_id": META_PAGE_ID,
+            # Não retorna o token completo por segurança, apenas indica que existe
+            "access_token_preview": f"{META_ACCESS_TOKEN[:10]}..." if META_ACCESS_TOKEN else "",
+            "api_version": "v25.0",
+        }
+        return env_config
     result = dict(row)
     # Mascarar token por segurança
     token = result.get("access_token", "")
@@ -46,6 +58,7 @@ async def save_config(data: MetaConfigSave, db=Depends(get_db), user=Depends(ver
     check = validate_connection(
         access_token=data.access_token,
         ad_account_id=data.ad_account_id,
+        api_version=data.api_version,
     )
     if not check["valid"]:
         raise HTTPException(status_code=400, detail=f"Conexão inválida: {check['error']}")
@@ -61,20 +74,58 @@ async def save_config(data: MetaConfigSave, db=Depends(get_db), user=Depends(ver
     return {"ok": True, "account_info": check}
 
 
+@router.get("/config/env")
+async def get_env_config(user=Depends(verify_auth)):
+    """Retorna credenciais completas do .env para pré-preencher o formulário."""
+    if not META_ACCESS_TOKEN:
+        raise HTTPException(status_code=404, detail="Nenhuma credencial configurada no .env")
+    return {
+        "app_id": META_APP_ID,
+        "ad_account_id": META_AD_ACCOUNT_ID,
+        "page_id": META_PAGE_ID,
+        "access_token": META_ACCESS_TOKEN,
+        "api_version": "v25.0",
+    }
+
+
+class ValidateRequest(BaseModel):
+    access_token: Optional[str] = None
+    ad_account_id: Optional[str] = None
+    api_version: Optional[str] = "v25.0"
+
+
 @router.post("/validate")
-async def validate_meta(db=Depends(get_db), user=Depends(verify_auth)):
-    """Testa a conexão com token atual."""
-    row = db.execute("SELECT access_token, ad_account_id FROM meta_config ORDER BY id DESC LIMIT 1").fetchone()
-    if not row:
-        raise HTTPException(status_code=404, detail="Meta não configurado")
+async def validate_meta(
+    data: Optional[ValidateRequest] = None,
+    db=Depends(get_db),
+    user=Depends(verify_auth),
+):
+    """Testa a conexão com token atual ou com credenciais fornecidas."""
+    # Usa credenciais do body se fornecidas, senão busca do banco
+    if data and data.access_token and data.ad_account_id:
+        access_token = data.access_token
+        ad_account_id = data.ad_account_id
+        api_version = data.api_version or "v25.0"
+    else:
+        row = db.execute("SELECT access_token, ad_account_id, api_version FROM meta_config ORDER BY id DESC LIMIT 1").fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Meta não configurado")
+        access_token = row["access_token"]
+        ad_account_id = row["ad_account_id"]
+        api_version = row.get("api_version") or "v25.0"
+    
     result = validate_connection(
-        access_token=row["access_token"],
-        ad_account_id=row["ad_account_id"],
+        access_token=access_token,
+        ad_account_id=ad_account_id,
+        api_version=api_version,
     )
-    # Atualizar status de validação
-    db.execute(
-        "UPDATE meta_config SET is_valid = ?, last_validated = CURRENT_TIMESTAMP",
-        (result["valid"],),
-    )
-    db.commit()
+    
+    # Só atualiza o banco se estiver usando credenciais do banco
+    if not (data and data.access_token):
+        db.execute(
+            "UPDATE meta_config SET is_valid = ?, last_validated = CURRENT_TIMESTAMP",
+            (result["valid"],),
+        )
+        db.commit()
+    
     return result
