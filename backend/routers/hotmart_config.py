@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from typing import Optional
 from database import get_db
 from auth import verify_auth
-from hotmart.client import get_hotmart_client
+from hotmart.client import HotmartClient, get_hotmart_client
 from config import HOTMART_CLIENT_ID, HOTMART_CLIENT_SECRET, HOTMART_BASIC_TOKEN, HOTMART_AMBIENTE
 
 router = APIRouter()

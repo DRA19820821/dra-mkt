@@ -8,6 +8,7 @@ export default function HotmartConnect() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
+  const [testError, setTestError] = useState(null)
 
   const [formData, setFormData] = useState({
     client_id: '',
@@ -76,8 +77,8 @@ export default function HotmartConnect() {
 
   async function handleTest() {
     setTesting(true)
+    setTestError(null)
     try {
-      // Se não há config salva, testa com os dados do formulário
       const testData = !config?.configured ? {
         client_id: formData.client_id,
         client_secret: formData.client_secret,
@@ -90,10 +91,13 @@ export default function HotmartConnect() {
         toast.success(`✅ Conectado! Ambiente: ${data.ambiente}`)
         loadConfig()
       } else {
+        setTestError(data.error || 'Conexão inválida')
         toast.error(`❌ Erro: ${data.error}`)
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erro ao testar conexão')
+      const msg = error.response?.data?.detail || error.message || 'Erro ao testar conexão'
+      setTestError(msg)
+      toast.error(msg)
     } finally {
       setTesting(false)
     }
@@ -218,6 +222,19 @@ export default function HotmartConnect() {
               Gere com: echo -n "client_id:client_secret" | base64
             </p>
           </div>
+
+          {/* Erro de Teste */}
+          {testError && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-red-800 mb-1">Erro na conexão</h4>
+                  <p className="text-sm text-red-700">{testError}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-3 pt-4">
             <button type="submit" disabled={saving} className="btn btn-primary">
