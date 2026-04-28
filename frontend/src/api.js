@@ -132,6 +132,7 @@ export const templatesApi = {
 export const hotmartApi = {
   // Config
   getConfig: () => api.get('/hotmart/config'),
+  getEnvConfig: () => api.get('/hotmart/config/env'),
   saveConfig: (data) => api.post('/hotmart/config', data),
   validate: () => api.post('/hotmart/config/validar'),
   deleteConfig: () => api.delete('/hotmart/config'),

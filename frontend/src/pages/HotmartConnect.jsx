@@ -31,11 +31,28 @@ export default function HotmartConnect() {
           basic_token: '',
           ambiente: data.ambiente || 'sandbox',
         })
+      } else {
+        // Tentar carregar do .env automaticamente
+        await loadEnvConfig()
       }
     } catch (error) {
       toast.error('Erro ao carregar configuração')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function loadEnvConfig() {
+    try {
+      const { data } = await hotmartApi.getEnvConfig()
+      setFormData({
+        client_id: data.client_id || '',
+        client_secret: data.client_secret || '',
+        basic_token: data.basic_token || '',
+        ambiente: data.ambiente || 'sandbox',
+      })
+    } catch {
+      // Silencioso: .env não configurado
     }
   }
 

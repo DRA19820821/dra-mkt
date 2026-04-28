@@ -13,6 +13,7 @@ from typing import Optional
 from database import get_db
 from auth import verify_auth
 from hotmart.client import get_hotmart_client
+from config import HOTMART_CLIENT_ID, HOTMART_CLIENT_SECRET, HOTMART_BASIC_TOKEN, HOTMART_AMBIENTE
 
 router = APIRouter()
 
@@ -56,6 +57,19 @@ async def save_config(data: HotmartConfigCreate, db=Depends(get_db), user=Depend
         )
     db.commit()
     return {"ok": True}
+
+
+@router.get("/config/env")
+async def get_env_config(user=Depends(verify_auth)):
+    """Retorna credenciais do .env para pré-preencher o formulário."""
+    if not HOTMART_CLIENT_ID or not HOTMART_CLIENT_SECRET or not HOTMART_BASIC_TOKEN:
+        raise HTTPException(status_code=404, detail="Nenhuma credencial configurada no .env")
+    return {
+        "client_id": HOTMART_CLIENT_ID,
+        "client_secret": HOTMART_CLIENT_SECRET,
+        "basic_token": HOTMART_BASIC_TOKEN,
+        "ambiente": HOTMART_AMBIENTE,
+    }
 
 
 @router.post("/config/validar")
