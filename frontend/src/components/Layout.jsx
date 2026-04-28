@@ -14,7 +14,10 @@ import {
   Images,
   FileCode,
   Settings,
-  BarChart3
+  BarChart3,
+  ShoppingBag,
+  Sparkles,
+  Link2,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -33,6 +36,12 @@ const navItems = [
 const metaNavItems = [
   { path: '/meta-connect', icon: Settings, label: 'Meta Connect' },
   { path: '/performance', icon: BarChart3, label: 'Performance' },
+]
+
+const hotmartNavItems = [
+  { path: '/hotmart-ia', icon: Sparkles, label: 'Gerar Produto IA' },
+  { path: '/hotmart-produtos', icon: ShoppingBag, label: 'Produtos Hotmart' },
+  { path: '/hotmart-connect', icon: Link2, label: 'Hotmart Connect' },
 ]
 
 export default function Layout() {
@@ -117,6 +126,37 @@ export default function Layout() {
                         flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
                         ${isActive
                           ? 'bg-[#D4A853] text-white font-medium shadow-lg'
+                          : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                        }
+                      `}
+                    >
+                      <Icon className={`w-5 h-5 ${isActive ? '' : 'group-hover:scale-110'} transition-transform`} />
+                      <span>{label}</span>
+                      {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+                    </NavLink>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+
+          {/* Hotmart Section */}
+          <div className="mt-6 pt-4 border-t border-white/10">
+            <p className="px-4 text-xs font-medium text-orange-300/70 uppercase tracking-wider mb-2">
+              Hotmart
+            </p>
+            <ul className="space-y-1">
+              {hotmartNavItems.map(({ path, icon: Icon, label }) => {
+                const isActive = location.pathname === path || location.pathname.startsWith(path + '/')
+                return (
+                  <li key={path}>
+                    <NavLink
+                      to={path}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`
+                        flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
+                        ${isActive
+                          ? 'bg-orange-500 text-white font-medium shadow-lg'
                           : 'text-blue-100 hover:bg-white/10 hover:text-white'
                         }
                       `}

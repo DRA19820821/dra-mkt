@@ -253,6 +253,107 @@ def init_db():
             created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """,
+        # Hotmart - Configuração
+        """
+        CREATE TABLE IF NOT EXISTS hotmart_config (
+            id                  SERIAL PRIMARY KEY,
+            client_id           TEXT NOT NULL,
+            client_secret       TEXT NOT NULL,
+            basic_token         TEXT NOT NULL,
+            ambiente            TEXT DEFAULT 'sandbox',
+            access_token        TEXT,
+            token_expires_at    TIMESTAMP,
+            is_valid            BOOLEAN DEFAULT FALSE,
+            last_validated      TIMESTAMP,
+            created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
+        # Hotmart - Produtos
+        """
+        CREATE TABLE IF NOT EXISTS hotmart_produtos (
+            id                      SERIAL PRIMARY KEY,
+            produto_dra_id          INTEGER REFERENCES produtos(id) ON DELETE SET NULL,
+            hotmart_product_id      TEXT UNIQUE,
+            nome                    TEXT NOT NULL,
+            descricao_curta         TEXT,
+            descricao_completa      TEXT,
+            categoria               TEXT,
+            formato                 TEXT DEFAULT 'online_course',
+            idioma                  TEXT DEFAULT 'pt_BR',
+            url_checkout            TEXT,
+            url_area_membros        TEXT,
+            status_hotmart          TEXT DEFAULT 'draft',
+            status_sync             TEXT DEFAULT 'local',
+            provider_llm            TEXT,
+            model_llm               TEXT,
+            score_ia                REAL,
+            error_log               TEXT,
+            created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
+        # Hotmart - Módulos
+        """
+        CREATE TABLE IF NOT EXISTS hotmart_modulos (
+            id                      SERIAL PRIMARY KEY,
+            hotmart_produto_id      INTEGER REFERENCES hotmart_produtos(id) ON DELETE CASCADE,
+            hotmart_module_id       TEXT,
+            nome                    TEXT NOT NULL,
+            descricao               TEXT,
+            ordem                   INTEGER NOT NULL DEFAULT 0,
+            status_sync             TEXT DEFAULT 'local',
+            created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
+        # Hotmart - Aulas
+        """
+        CREATE TABLE IF NOT EXISTS hotmart_aulas (
+            id                      SERIAL PRIMARY KEY,
+            hotmart_modulo_id       INTEGER REFERENCES hotmart_modulos(id) ON DELETE CASCADE,
+            hotmart_lesson_id       TEXT,
+            nome                    TEXT NOT NULL,
+            descricao               TEXT,
+            tipo                    TEXT DEFAULT 'video',
+            duracao_minutos         INTEGER,
+            ordem                   INTEGER NOT NULL DEFAULT 0,
+            status_sync             TEXT DEFAULT 'local',
+            created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
+        # Hotmart - Planos
+        """
+        CREATE TABLE IF NOT EXISTS hotmart_planos (
+            id                      SERIAL PRIMARY KEY,
+            hotmart_produto_id      INTEGER REFERENCES hotmart_produtos(id) ON DELETE CASCADE,
+            hotmart_plan_id         TEXT,
+            nome                    TEXT NOT NULL,
+            tipo                    TEXT DEFAULT 'unico',
+            preco                   REAL NOT NULL,
+            moeda                   TEXT DEFAULT 'BRL',
+            max_parcelas            INTEGER DEFAULT 1,
+            periodicidade           TEXT,
+            ativo                   BOOLEAN DEFAULT TRUE,
+            status_sync             TEXT DEFAULT 'local',
+            created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
+        # Hotmart - Gerações IA
+        """
+        CREATE TABLE IF NOT EXISTS hotmart_geracoes_ia (
+            id                      SERIAL PRIMARY KEY,
+            hotmart_produto_id      INTEGER REFERENCES hotmart_produtos(id) ON DELETE CASCADE,
+            tipo_geracao            TEXT NOT NULL,
+            provider_llm            TEXT NOT NULL,
+            model_llm               TEXT NOT NULL,
+            prompt_usado            TEXT,
+            resultado_json          TEXT,
+            score                   REAL,
+            tentativa               INTEGER DEFAULT 1,
+            status                  TEXT DEFAULT 'gerado',
+            created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
     ]
 
     for stmt in statements:

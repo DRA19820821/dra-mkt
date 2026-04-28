@@ -12,6 +12,9 @@ import Campanhas from './pages/Campanhas'
 import Templates from './pages/Templates'
 import MetaConnect from './pages/MetaConnect'
 import Performance from './pages/Performance'
+import HotmartConnect from './pages/HotmartConnect'
+import HotmartProdutos from './pages/HotmartProdutos'
+import GerarProdutoHotmart from './pages/GerarProdutoHotmart'
 
 export default function App() {
   return (
@@ -45,6 +48,9 @@ export default function App() {
           <Route path="templates" element={<Templates />} />
           <Route path="meta-connect" element={<MetaConnect />} />
           <Route path="performance" element={<Performance />} />
+          <Route path="hotmart-connect" element={<HotmartConnect />} />
+          <Route path="hotmart-produtos" element={<HotmartProdutos />} />
+          <Route path="hotmart-ia" element={<GerarProdutoHotmart />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

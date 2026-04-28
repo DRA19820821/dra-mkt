@@ -128,6 +128,32 @@ export const templatesApi = {
   defaults: () => api.get('/templates/defaults'),
 };
 
+// API Hotmart
+export const hotmartApi = {
+  // Config
+  getConfig: () => api.get('/hotmart/config'),
+  saveConfig: (data) => api.post('/hotmart/config', data),
+  validate: () => api.post('/hotmart/config/validar'),
+  deleteConfig: () => api.delete('/hotmart/config'),
+
+  // Produtos
+  listarProdutos: () => api.get('/hotmart/produtos'),
+  detalheProduto: (id) => api.get(`/hotmart/produtos/${id}`),
+  criarProduto: (data) => api.post('/hotmart/produtos', data),
+  atualizarProduto: (id, data) => api.put(`/hotmart/produtos/${id}`, data),
+  deletarProduto: (id) => api.delete(`/hotmart/produtos/${id}`),
+  sincronizar: (id) => api.post(`/hotmart/produtos/${id}/sincronizar`),
+  importar: () => api.get('/hotmart/produtos/importar'),
+  adicionarModulo: (id, data) => api.post(`/hotmart/produtos/${id}/modulos`, data),
+  adicionarPlano: (id, data) => api.post(`/hotmart/produtos/${id}/planos`, data),
+
+  // IA
+  listarProviders: () => api.get('/hotmart/ia/providers'),
+  gerar: (data, callbacks) => createSSERequest('/hotmart/ia/gerar', data, callbacks),
+  aplicar: (id, data) => api.post(`/hotmart/ia/aplicar/${id}`, data),
+  historico: (id) => api.get(`/hotmart/ia/historico/${id}`),
+};
+
 // API Meta Marketing
 export const metaApi = {
   // Config

@@ -25,6 +25,11 @@ from routers.meta_publish import router as meta_publish_router
 from routers.meta_actions import router as meta_actions_router
 from routers.meta_metrics import router as meta_metrics_router
 
+# Hotmart
+from routers.hotmart_config import router as hotmart_config_router
+from routers.hotmart_produtos import router as hotmart_produtos_router
+from routers.hotmart_ia import router as hotmart_ia_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -79,6 +84,11 @@ app.include_router(meta_config_router, prefix="/api/meta", tags=["meta-config"])
 app.include_router(meta_publish_router, prefix="/api/meta", tags=["meta-publish"])
 app.include_router(meta_actions_router, prefix="/api/meta/actions", tags=["meta-actions"])
 app.include_router(meta_metrics_router, prefix="/api/meta/metrics", tags=["meta-metrics"])
+
+# Hotmart Routers
+app.include_router(hotmart_config_router, prefix="/api/hotmart", tags=["hotmart-config"])
+app.include_router(hotmart_produtos_router, prefix="/api/hotmart", tags=["hotmart-produtos"])
+app.include_router(hotmart_ia_router, prefix="/api/hotmart", tags=["hotmart-ia"])
 
 
 # ===== SPA Fallback (deve vir DEPOIS de todas as API routes) =====

@@ -291,6 +291,69 @@ O backend serve o SPA React em todas as rotas não-API.
 
 ---
 
+## 8. Hotmart
+
+Integração com a Hotmart API para criação e gestão de produtos digitais.
+
+### Configuração
+**Tabela**: `hotmart_config`
+- `client_id`, `client_secret`, `basic_token`, `ambiente` (sandbox/producao)
+- `access_token`, `token_expires_at`, `is_valid`
+
+**API**:
+- `GET|POST|DELETE /api/hotmart/config`
+- `POST /api/hotmart/config/validar`
+
+### Produtos Hotmart
+**Tabela**: `hotmart_produtos`
+- `id`, `produto_dra_id`, `hotmart_product_id`, `nome`, `descricao_curta`, `descricao_completa`
+- `categoria`, `formato`, `idioma`, `status_hotmart`, `status_sync`
+- `provider_llm`, `model_llm`, `score_ia`
+
+**Tabelas relacionadas**:
+- `hotmart_modulos` — módulos/seções do curso
+- `hotmart_aulas` — aulas de cada módulo (video/pdf/texto/quiz)
+- `hotmart_planos` — planos de preço (unico/recorrente/parcelado)
+- `hotmart_geracoes_ia` — histórico de gerações IA
+
+**API**:
+- `GET /api/hotmart/produtos` — lista com agregação
+- `GET /api/hotmart/produtos/{id}` — detalhe com módulos + aulas + planos
+- `POST /api/hotmart/produtos` — cria local
+- `PUT|DELETE /api/hotmart/produtos/{id}`
+- `POST /api/hotmart/produtos/{id}/sincronizar` — envia para Hotmart API
+- `POST /api/hotmart/produtos/{id}/modulos` — adiciona módulo com aulas
+- `POST /api/hotmart/produtos/{id}/planos` — adiciona plano
+- `GET /api/hotmart/produtos/importar` — importa da Hotmart
+
+### Pipeline IA (Hotmart)
+Gera estrutura do curso + copy de vendas via LangGraph:
+
+**Nós**:
+1. `gerar_estrutura` — cria módulos e aulas com design instrucional
+2. `revisar_estrutura` — avalia progressão didática, abrangência, equilíbrio
+3. `gerar_copy` — cria copy completo (título, subtítulo, HTML, CTA)
+4. `revisar_copy` — avalia impacto, proposta de valor, gatilhos mentais
+
+**Loop**: score < threshold → refaz até max_tentativas
+
+**API**:
+- `GET /api/hotmart/ia/providers`
+- `POST /api/hotmart/ia/gerar` — SSE streaming
+- `POST /api/hotmart/ia/aplicar/{produto_id}`
+- `GET /api/hotmart/ia/historico/{produto_id}`
+
+### Fluxo de Geração Hotmart
+1. Usuário preenche tema, público, nível, carga horária
+2. Pipeline IA gera estrutura do curso (módulos + aulas)
+3. Revisor avalia estrutura (score 0-10)
+4. Se aprovado, gera copy de vendas completa em HTML
+5. Revisor avalia copy (score 0-10)
+6. Resultado salvo no banco: produto + módulos + aulas
+7. Usuário pode sincronizar com Hotmart API (cria produto, módulos, aulas, planos)
+
+---
+
 ## Versionamento
 
 Fazer commit após mudanças significativas:

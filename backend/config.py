@@ -32,6 +32,12 @@ META_AD_ACCOUNT_ID = os.getenv("META_AD_ACCOUNT_ID", "")
 META_PAGE_ID = os.getenv("META_PAGE_ID", "")
 META_ACCESS_TOKEN = os.getenv("META_ACCESS_TOKEN", "")
 
+# Hotmart API
+HOTMART_CLIENT_ID     = os.getenv("HOTMART_CLIENT_ID", "")
+HOTMART_CLIENT_SECRET = os.getenv("HOTMART_CLIENT_SECRET", "")
+HOTMART_BASIC_TOKEN   = os.getenv("HOTMART_BASIC_TOKEN", "")
+HOTMART_AMBIENTE      = os.getenv("HOTMART_AMBIENTE", "sandbox")
+
 # App
 APP_NAME = "DRA Marketing"
 APP_VERSION = "0.1.0"
