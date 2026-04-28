@@ -134,7 +134,7 @@ export const hotmartApi = {
   getConfig: () => api.get('/hotmart/config'),
   getEnvConfig: () => api.get('/hotmart/config/env'),
   saveConfig: (data) => api.post('/hotmart/config', data),
-  validate: () => api.post('/hotmart/config/validar'),
+  validate: (data) => api.post('/hotmart/config/validar', data || {}),
   deleteConfig: () => api.delete('/hotmart/config'),
 
   // Produtos

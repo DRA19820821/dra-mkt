@@ -77,7 +77,15 @@ export default function HotmartConnect() {
   async function handleTest() {
     setTesting(true)
     try {
-      const { data } = await hotmartApi.validate()
+      // Se não há config salva, testa com os dados do formulário
+      const testData = !config?.configured ? {
+        client_id: formData.client_id,
+        client_secret: formData.client_secret,
+        basic_token: formData.basic_token,
+        ambiente: formData.ambiente,
+      } : null
+
+      const { data } = await hotmartApi.validate(testData)
       if (data.valid) {
         toast.success(`✅ Conectado! Ambiente: ${data.ambiente}`)
         loadConfig()
@@ -219,7 +227,7 @@ export default function HotmartConnect() {
             <button
               type="button"
               onClick={handleTest}
-              disabled={testing || !config?.configured}
+              disabled={testing}
               className="btn btn-outline"
             >
               <TestTube className="w-5 h-5" />

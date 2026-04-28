@@ -72,29 +72,51 @@ async def get_env_config(user=Depends(verify_auth)):
     }
 
 
+class ValidateRequest(BaseModel):
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    basic_token: Optional[str] = None
+    ambiente: Optional[str] = "sandbox"
+
+
 @router.post("/config/validar")
-async def validate_config(db=Depends(get_db), user=Depends(verify_auth)):
-    """Testa conexão com credenciais do banco e atualiza token."""
-    client = get_hotmart_client(db)
-    if not client:
-        raise HTTPException(status_code=400, detail="Hotmart não configurado")
+async def validate_config(
+    data: Optional[ValidateRequest] = None,
+    db=Depends(get_db),
+    user=Depends(verify_auth),
+):
+    """Testa conexão com credenciais do banco ou com credenciais fornecidas."""
+    if data and data.client_id and data.client_secret and data.basic_token:
+        client = HotmartClient(
+            client_id=data.client_id,
+            client_secret=data.client_secret,
+            basic_token=data.basic_token,
+            ambiente=data.ambiente or "sandbox",
+        )
+    else:
+        client = get_hotmart_client(db)
+        if not client:
+            raise HTTPException(status_code=400, detail="Hotmart não configurado")
 
     result = client.validar_conexao()
-    if result["valid"]:
-        db.execute(
-            """UPDATE hotmart_config SET
-                is_valid = TRUE, access_token = ?, token_expires_at = ?,
-                last_validated = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
-            """,
-            (client._access_token, client._token_expires_at),
-        )
-        db.commit()
-    else:
-        db.execute(
-            "UPDATE hotmart_config SET is_valid = FALSE, updated_at = CURRENT_TIMESTAMP",
-        )
-        db.commit()
-        raise HTTPException(status_code=400, detail=f"Conexão inválida: {result['error']}")
+
+    # Só atualiza o banco se estiver usando credenciais do banco
+    if not (data and data.client_id):
+        if result["valid"]:
+            db.execute(
+                """UPDATE hotmart_config SET
+                    is_valid = TRUE, access_token = ?, token_expires_at = ?,
+                    last_validated = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+                """,
+                (client._access_token, client._token_expires_at),
+            )
+            db.commit()
+        else:
+            db.execute(
+                "UPDATE hotmart_config SET is_valid = FALSE, updated_at = CURRENT_TIMESTAMP",
+            )
+            db.commit()
+            raise HTTPException(status_code=400, detail=f"Conexão inválida: {result['error']}")
 
     return result
 
