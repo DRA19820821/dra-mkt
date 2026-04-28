@@ -59,8 +59,8 @@ export default function HotmartConnect() {
 
   async function handleSave(e) {
     e.preventDefault()
-    if (!formData.client_id || !formData.client_secret || !formData.basic_token) {
-      toast.error('Preencha todos os campos obrigatórios')
+    if (!formData.client_id || !formData.client_secret) {
+      toast.error('Preencha Client ID e Client Secret')
       return
     }
     setSaving(true)
@@ -82,7 +82,6 @@ export default function HotmartConnect() {
       const testData = !config?.configured ? {
         client_id: formData.client_id,
         client_secret: formData.client_secret,
-        basic_token: formData.basic_token,
         ambiente: formData.ambiente,
       } : null
 
@@ -209,17 +208,16 @@ export default function HotmartConnect() {
           </div>
 
           <div>
-            <label className="form-label">Basic Token *</label>
+            <label className="form-label">Basic Token <span className="text-gray-400 font-normal">(opcional — calculado automaticamente)</span></label>
             <input
               type="password"
               value={formData.basic_token}
               onChange={(e) => setFormData({ ...formData, basic_token: e.target.value })}
               className="form-input"
-              placeholder="Base64(client_id:client_secret)"
-              required
+              placeholder="Deixe em branco para gerar automaticamente"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Gere com: echo -n "client_id:client_secret" | base64
+              Se deixado em branco, o sistema calcula automaticamente a partir do Client ID e Secret
             </p>
           </div>
 

@@ -53,15 +53,20 @@ class HotmartClient:
 
     def obter_token(self) -> dict:
         """Obtém novo access_token via client_credentials. Retorna dict com token e expiração."""
+        # Hotmart exige Basic Auth header (base64(client_id:client_secret))
+        # + form-urlencoded body com grant_type apenas
+        import base64
+        basic_auth = base64.b64encode(
+            f"{self.client_id}:{self.client_secret}".encode()
+        ).decode()
         resp = httpx.post(
             self.auth_url,
             headers={
+                "Authorization": f"Basic {basic_auth}",
                 "Content-Type": "application/x-www-form-urlencoded",
             },
             data={
                 "grant_type": "client_credentials",
-                "client_id": self.client_id,
-                "client_secret": self.client_secret,
             },
             timeout=30,
         )

@@ -75,7 +75,6 @@ async def get_env_config(user=Depends(verify_auth)):
 class ValidateRequest(BaseModel):
     client_id: Optional[str] = None
     client_secret: Optional[str] = None
-    basic_token: Optional[str] = None
     ambiente: Optional[str] = "sandbox"
 
 
@@ -86,11 +85,11 @@ async def validate_config(
     user=Depends(verify_auth),
 ):
     """Testa conexão com credenciais do banco ou com credenciais fornecidas."""
-    if data and data.client_id and data.client_secret and data.basic_token:
+    if data and data.client_id and data.client_secret:
         client = HotmartClient(
             client_id=data.client_id,
             client_secret=data.client_secret,
-            basic_token=data.basic_token,
+            basic_token="",  # calculado automaticamente no client
             ambiente=data.ambiente or "sandbox",
         )
     else:
