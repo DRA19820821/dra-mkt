@@ -56,10 +56,9 @@ class HotmartClient:
         resp = httpx.post(
             self.auth_url,
             headers={
-                "Authorization": f"Basic {self.basic_token}",
-                "Content-Type": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
             },
-            json={
+            data={
                 "grant_type": "client_credentials",
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
